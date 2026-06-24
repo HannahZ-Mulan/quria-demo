@@ -1,4 +1,6 @@
 "use client";
+import { useI18n } from "@/i18n";
+import { Button } from "@/components/ui/button";
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +26,7 @@ export default function Project1Demo() {
   const [result, setResult] = useState<QuestionResult | null>(null);
   const [history, setHistory] = useState<QuestionResult[]>([]);
 
-  const generateQuestion = () => {
+    const generateQuestion = () => {
     const answerLength = answer.trim().length;
     let maxLength: number;
     
@@ -40,15 +42,66 @@ export default function Project1Demo() {
     if (mode === "精简") maxLength = Math.floor(maxLength * 0.7);
     if (mode === "深度") maxLength = Math.floor(maxLength * 1.3);
 
-    // 模拟追问生成
-    const strategies = [
-      "您刚才提到的[关键词]，能具体说说当时的场景吗？",
-      "这个经历中，最让您印象深刻的部分是什么？",
-      "如果让您用一个词形容当时的感受，会是什么？",
-      "您提到[关键词]，这和您平时的习惯有什么不同？",
-      "能举一个具体的例子来说明吗？",
-    ];
+    // ===== 优化 A：关键词智能匹配 =====
+    const lowerAnswer = answer.toLowerCase();
     
+    let baseQuestion: string;
+    let matchedStrategy = "关键词匹配";
+    
+    if (lowerAnswer.includes("价格") || lowerAnswer.includes("贵") || lowerAnswer.includes("便宜") || lowerAnswer.includes("钱")) {
+      baseQuestion = "您提到价格因素，能具体说说您心目中的合理价位是多少吗？";
+    } else if (lowerAnswer.includes("方便") || lowerAnswer.includes("麻烦") || lowerAnswer.includes("难用") || lowerAnswer.includes("好用")) {
+      baseQuestion = "您提到使用体验，能描述一下最让您感到不便的具体场景吗？";
+    } else if (lowerAnswer.includes("喜欢") || lowerAnswer.includes("满意") || lowerAnswer.includes("好") || lowerAnswer.includes("不错")) {
+      baseQuestion = "您对产品比较认可，能说说最打动您的那个功能或特点吗？";
+    } else if (lowerAnswer.includes("不喜欢") || lowerAnswer.includes("失望") || lowerAnswer.includes("问题") || lowerAnswer.includes("缺点")) {
+      baseQuestion = "您提到一些顾虑，如果产品能改善这一点，会改变您的想法吗？";
+    } else if (lowerAnswer.includes("品牌") || lowerAnswer.includes("牌子") || lowerAnswer.includes("知名度")) {
+      baseQuestion = "您提到品牌因素，品牌知名度对您的购买决策影响有多大？";
+    } else if (lowerAnswer.includes("朋友") || lowerAnswer.includes("推荐") || lowerAnswer.includes("口碑") || lowerAnswer.includes("别人")) {
+      baseQuestion = "您提到他人推荐，能说说您更信任哪类人的推荐吗？";
+    } else if (answerLength <= 10) {
+      // 回答很短，用选择题
+      baseQuestion = "您刚才的回答比较简洁，方便展开说说您的想法吗？";
+      matchedStrategy = "短回答引导";
+    } else {
+      // 默认策略
+      const strategies = [
+        "您刚才提到的观点，能具体展开说说吗？",
+        "这个经历中，最让您印象深刻的部分是什么？",
+        "能举一个具体的例子来说明您的想法吗？",
+        "您提到这一点，这和您平时的习惯有什么不同？",
+        "如果让您用一个词形容当时的感受，会是什么？",
+      ];
+      baseQuestion = strategies[Math.floor(Math.random() * strategies.length)];
+      matchedStrategy = "通用追问";
+    }
+
+    // 模拟压缩/拆分逻辑
+    let finalQuestion = baseQuestion;
+    let strategy = matchedStrategy;
+    
+    if (baseQuestion.length > maxLength) {
+      if (mode === "精简") {
+        finalQuestion = baseQuestion.slice(0, maxLength) + "...";
+        strategy = matchedStrategy + " + 截断压缩";
+      } else {
+        finalQuestion = "先问：" + baseQuestion.slice(0, Math.floor(maxLength / 2)) + "？";
+        strategy = matchedStrategy + " + 拆分追问";
+      }
+    }
+
+    const result: QuestionResult = {
+      question: finalQuestion,
+      wordCount: finalQuestion.length,
+      strategy,
+      originalLength: baseQuestion.length,
+    };
+
+    setResult(result);
+    setHistory(prev => [result, ...prev].slice(0, 5));
+  };
+
     const baseQuestion = strategies[Math.floor(Math.random() * strategies.length)];
     
     // 模拟压缩/拆分逻辑
@@ -78,6 +131,20 @@ export default function Project1Demo() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      {/* 语言切换 */}
+      <div className="max-w-4xl mx-auto mb-4 flex justify-end gap-2">
+        {["zh-CN", "zh-TW", "en", "yue", "ja"].map((l) => (
+          <Button
+            key={l}
+            variant={lang === l ? "default" : "outline"}
+            size="sm"
+            onClick={() => setLang(l as Language)}
+          >
+            {l === "zh-CN" ? "简" : l === "zh-TW" ? "繁" : l === "en" ? "EN" : l === "yue" ? "粤" : "日"}
+          </Button>
+        ))}
+      </div>
+      
       <div className="max-w-4xl mx-auto space-y-6">
         {/* 头部 */}
         <div className="text-center space-y-2">
