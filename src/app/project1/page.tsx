@@ -1,14 +1,12 @@
 "use client";
-import { useI18n } from "@/i18n";
-import { Button } from "@/components/ui/button";
 
 import { useState } from "react";
+import { useI18n, Language } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Mode = "精简" | "标准" | "深度";
 
@@ -20,29 +18,25 @@ interface QuestionResult {
 }
 
 export default function Project1Demo() {
+  const { t, lang, setLang } = useI18n();
   const [answer, setAnswer] = useState("");
   const [mode, setMode] = useState<Mode>("标准");
   const [device, setDevice] = useState<"PC" | "移动端">("PC");
   const [result, setResult] = useState<QuestionResult | null>(null);
   const [history, setHistory] = useState<QuestionResult[]>([]);
 
-    const generateQuestion = () => {
+  const generateQuestion = () => {
     const answerLength = answer.trim().length;
     let maxLength: number;
     
-    // 动态长度计算规则
     if (answerLength <= 20) maxLength = 30;
     else if (answerLength <= 100) maxLength = 45;
     else maxLength = 60;
     
-    // 移动端缩减
     if (device === "移动端") maxLength = Math.floor(maxLength * 0.75);
-    
-    // 模式调整
     if (mode === "精简") maxLength = Math.floor(maxLength * 0.7);
     if (mode === "深度") maxLength = Math.floor(maxLength * 1.3);
 
-    // ===== 优化 A：关键词智能匹配 =====
     const lowerAnswer = answer.toLowerCase();
     
     let baseQuestion: string;
@@ -61,11 +55,9 @@ export default function Project1Demo() {
     } else if (lowerAnswer.includes("朋友") || lowerAnswer.includes("推荐") || lowerAnswer.includes("口碑") || lowerAnswer.includes("别人")) {
       baseQuestion = "您提到他人推荐，能说说您更信任哪类人的推荐吗？";
     } else if (answerLength <= 10) {
-      // 回答很短，用选择题
       baseQuestion = "您刚才的回答比较简洁，方便展开说说您的想法吗？";
       matchedStrategy = "短回答引导";
     } else {
-      // 默认策略
       const strategies = [
         "您刚才提到的观点，能具体展开说说吗？",
         "这个经历中，最让您印象深刻的部分是什么？",
@@ -77,7 +69,6 @@ export default function Project1Demo() {
       matchedStrategy = "通用追问";
     }
 
-    // 模拟压缩/拆分逻辑
     let finalQuestion = baseQuestion;
     let strategy = matchedStrategy;
     
@@ -88,33 +79,6 @@ export default function Project1Demo() {
       } else {
         finalQuestion = "先问：" + baseQuestion.slice(0, Math.floor(maxLength / 2)) + "？";
         strategy = matchedStrategy + " + 拆分追问";
-      }
-    }
-
-    const result: QuestionResult = {
-      question: finalQuestion,
-      wordCount: finalQuestion.length,
-      strategy,
-      originalLength: baseQuestion.length,
-    };
-
-    setResult(result);
-    setHistory(prev => [result, ...prev].slice(0, 5));
-  };
-
-    const baseQuestion = strategies[Math.floor(Math.random() * strategies.length)];
-    
-    // 模拟压缩/拆分逻辑
-    let finalQuestion = baseQuestion;
-    let strategy = "直接生成";
-    
-    if (baseQuestion.length > maxLength) {
-      if (mode === "精简") {
-        finalQuestion = baseQuestion.slice(0, maxLength) + "...";
-        strategy = "截断压缩";
-      } else {
-        finalQuestion = "先问：" + baseQuestion.slice(0, Math.floor(maxLength / 2)) + "？";
-        strategy = "拆分追问";
       }
     }
 
@@ -146,14 +110,12 @@ export default function Project1Demo() {
       </div>
       
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* 头部 */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">项目 1：AI 追问长度动态优化</h1>
           <p className="text-gray-600">模拟 Quria AI 访谈中追问长度的智能控制机制</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* 左侧：输入区 */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">受访者回答模拟</CardTitle>
@@ -205,7 +167,6 @@ export default function Project1Demo() {
             </CardContent>
           </Card>
 
-          {/* 右侧：输出区 */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">AI 追问输出</CardTitle>
@@ -247,7 +208,6 @@ export default function Project1Demo() {
           </Card>
         </div>
 
-        {/* 历史记录 */}
         {history.length > 0 && (
           <Card>
             <CardHeader>
@@ -270,7 +230,6 @@ export default function Project1Demo() {
           </Card>
         )}
 
-        {/* 规则说明 */}
         <Card className="bg-gray-100 border-0">
           <CardContent className="pt-6">
             <h3 className="font-semibold mb-2">动态长度计算规则</h3>
