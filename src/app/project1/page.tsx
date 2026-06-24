@@ -111,18 +111,18 @@ export default function Project1Demo() {
       
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">项目 1：AI 追问长度动态优化</h1>
-          <p className="text-gray-600">模拟 Quria AI 访谈中追问长度的智能控制机制</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t("project1_title")}</h1>
+          <p className="text-gray-600">{t("project1_desc")}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">受访者回答模拟</CardTitle>
+              <CardTitle className="text-lg">{t("answer_input")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Textarea
-                placeholder="请输入模拟的受访者回答（例如：我觉得这个产品还行，就是价格有点贵）"
+                placeholder={t("answer_placeholder")}
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 className="min-h-[120px]"
@@ -138,9 +138,9 @@ export default function Project1Demo() {
 
               <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
                 <TabsList className="w-full">
-                  <TabsTrigger value="精简" className="flex-1">精简模式</TabsTrigger>
-                  <TabsTrigger value="标准" className="flex-1">标准模式</TabsTrigger>
-                  <TabsTrigger value="深度" className="flex-1">深度模式</TabsTrigger>
+                  <TabsTrigger value="精简" className="flex-1">{t("mode_compact")}</TabsTrigger>
+                  <TabsTrigger value="标准" className="flex-1">{t("mode_standard")}</TabsTrigger>
+                  <TabsTrigger value="深度" className="flex-1">{t("mode_deep")}</TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -150,26 +150,26 @@ export default function Project1Demo() {
                   onClick={() => setDevice("PC")}
                   className="flex-1"
                 >
-                  PC 端
+                  {t("device_pc")}
                 </Button>
                 <Button 
                   variant={device === "移动端" ? "default" : "outline"} 
                   onClick={() => setDevice("移动端")}
                   className="flex-1"
                 >
-                  移动端
+                  {t("device_mobile")}
                 </Button>
               </div>
 
               <Button onClick={generateQuestion} className="w-full">
-                生成追问
+                {t("generate_question")}
               </Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">AI 追问输出</CardTitle>
+              <CardTitle className="text-lg">{t("question_output")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {result ? (
@@ -181,15 +181,15 @@ export default function Project1Demo() {
                   <div className="grid grid-cols-3 gap-2">
                     <div className="text-center p-3 bg-gray-100 rounded-lg">
                       <div className="text-2xl font-bold text-gray-900">{result.wordCount}</div>
-                      <div className="text-xs text-gray-500">最终字数</div>
+                      <div className="text-xs text-gray-500">{t("final_length")}</div>
                     </div>
                     <div className="text-center p-3 bg-gray-100 rounded-lg">
                       <div className="text-2xl font-bold text-gray-900">{result.originalLength}</div>
-                      <div className="text-xs text-gray-500">原始字数</div>
+                      <div className="text-xs text-gray-500">{t("original_length")}</div>
                     </div>
                     <div className="text-center p-3 bg-gray-100 rounded-lg">
                       <div className="text-lg font-bold text-gray-900">{result.strategy}</div>
-                      <div className="text-xs text-gray-500">处理策略</div>
+                      <div className="text-xs text-gray-500">{t("strategy")}</div>
                     </div>
                   </div>
 
@@ -211,7 +211,7 @@ export default function Project1Demo() {
         {history.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">最近 5 次生成记录</CardTitle>
+              <CardTitle className="text-lg">{t("recent_records")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -232,13 +232,13 @@ export default function Project1Demo() {
 
         <Card className="bg-gray-100 border-0">
           <CardContent className="pt-6">
-            <h3 className="font-semibold mb-2">动态长度计算规则</h3>
+            <h3 className="font-semibold mb-2">{t("rule_title")}</h3>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>• 回答 ≤ 20 字 → 追问上限 30 字</li>
-              <li>• 20 &lt; 回答 ≤ 100 字 → 追问上限 45 字</li>
-              <li>• 回答 &gt; 100 字 → 追问上限 60 字</li>
-              <li>• 移动端额外缩减 25%</li>
-              <li>• 精简模式缩减 30%，深度模式放宽 30%</li>
+              <li>• {t("rule_1")}</li>
+              <li>• {t("rule_2")}</li>
+              <li>• {t("rule_3")}</li>
+              <li>• {t("rule_4")}</li>
+              <li>• {t("rule_5")}</li>
             </ul>
           </CardContent>
         </Card>
