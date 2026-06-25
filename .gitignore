@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# playwright-cli runtime artifacts (console logs, page snapshots)
+/.playwright-cli/
+
 # next.js
 /.next/
 /out/
