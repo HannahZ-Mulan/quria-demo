@@ -1,10 +1,25 @@
-// Local rule-based follow-up question generation.
-// Extracted VERBATIM from the original src/app/project1/page.tsx generateQuestion()
-// so the offline fallback produces byte-for-byte identical output to today's behavior.
-// This is the silent fallback used by ai-client.ts when DeepSeek is unavailable.
+// 本文件实现"基于规则"的追问生成（不依赖 AI）。
+//
+// 它是从最初 project1/page.tsx 里的 generateQuestion() 原样搬出来的，
+// 保证 AI 不可用时的兜底结果，和原来"不用 AI"时一模一样。
+// 当 DeepSeek 没配置或调用失败时，ai-client.ts 就会静默调用这里。
 
 import type { Mode, Device, QuestionResult } from "./types";
 
+/**
+ * 根据用户回答里的"关键词" + 选择的模式/设备，用固定规则生成一句追问。
+ *
+ * 工作原理：
+ * 1. 扫描回答里的关键词（比如"价格""好用""品牌"），判断属于哪类话题；
+ * 2. 每类话题都预先准备了三种长度的问法（精简/标准/深度）；
+ * 3. 按用户选的模式挑出对应的那句；
+ * 4. 如果是移动端且问题太长，再退回到最短版本。
+ *
+ * @param answer - 受访者输入的回答
+ * @param mode - 追问详细程度（精简/标准/深度）
+ * @param device - 设备类型（PC/移动端）
+ * @returns 生成结果（包含追问文字、字数、策略标签）
+ */
 export function generateFollowupByRule(
   answer: string,
   mode: Mode,

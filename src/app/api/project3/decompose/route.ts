@@ -1,13 +1,15 @@
-// project3 requirement decomposition: AI turns a fuzzy client requirement into a
-// structured DecomposeResult JSON, with conflict detection and fuzzy-expression flags.
-// Non-2xx => client falls back to decomposeByRule.
+// project3 需求拆解接口：让 AI 把客户模糊的需求，变成一份结构化的
+// DecomposeResult（JSON），并附带冲突检测和模糊用词标记。
+// 任何失败都返回非 2xx，客户端会自动改用 decomposeByRule 本地规则兜底。
 
 import { NextResponse } from "next/server";
 import { callDeepSeekJSON, DeepSeekConfigError, extractStatus } from "@/lib/deepseek";
 import type { DecomposeRequest, DecomposeResult } from "@/lib/types";
 
+// 原始需求文字的最大长度
 const MAX_REQ_LEN = 4000;
 
+// 给 AI 看的"输出格式示例"，告诉它每个字段该怎么填
 const SCHEMA_EXAMPLE = `{
   "researchGoal": "一句话描述研究目标（未明确则填\"未明确\"）",
   "targetAudience": "目标人群画像（年龄/性别/职业/地域，未明确则填\"未明确\"）",
@@ -30,6 +32,15 @@ const SYSTEM_PROMPT = [
   SCHEMA_EXAMPLE,
 ].join("\n");
 
+/**
+ * 处理需求拆解的 POST 请求。
+ * 校验入参 → 拼 AI 提示词（带输出格式示例）→ 调用 DeepSeek（JSON 模式）
+ * → 把结果做防御性整理（缺字段就补默认值）→ 返回。
+ * 入参不对返回 400；需求太长返回 413；AI 没配置返回 503；调用失败返回对应错误码。
+ *
+ * @param request - 前端请求，body 含 rawRequirement 原始需求
+ * @returns JSON 响应：成功 { result, usedAI }，失败 { error }
+ */
 export async function POST(request: Request) {
   let body: DecomposeRequest;
   try {

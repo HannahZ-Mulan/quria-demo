@@ -1,27 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useI18n } from "@/i18n";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ChatPanel } from "@/components/ChatPanel";
 import { callFollowupAI } from "@/lib/ai-client";
-import type { Mode, QuestionResult } from "@/lib/types";
+import type { Mode, Device, QuestionResult } from "@/lib/types";
 
+/**
+ * project1 演示页（深空控制台 Cockpit 版）。
+ *
+ * 视觉：深空科技底（.deep-space）+ 双栏仪表盘。左栏输入参数，
+ * 右栏实时结果。沿用首页方案 B 的霓虹配色与玻璃质感，与首页成套。
+ *
+ * 业务逻辑完全不变：单轮追问 / 多轮对话两种模式，模式(精简/标准/深度)
+ * 与设备(PC/移动端)切换，生成后展示问题、字数、策略、压缩率，并保留
+ * 最近 5 条历史。仅外壳样式从灰白 Card 重构为深空控制台。
+ */
 export default function Project1Demo() {
   const { t } = useI18n();
+  const [tab, setTab] = useState<"single" | "chat">("single");
+
   const [answer, setAnswer] = useState("");
   const [mode, setMode] = useState<Mode>("标准");
-  const [device, setDevice] = useState<"PC" | "移动端">("PC");
+  const [device, setDevice] = useState<Device>("PC");
   const [result, setResult] = useState<QuestionResult | null>(null);
   const [usedAI, setUsedAI] = useState(true);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<QuestionResult[]>([]);
 
+  /**
+   * 生成追问：调用 AI 接口（失败会自动用本地规则），
+   * 把结果存起来显示，并加到历史记录里（最多保留 5 条）。
+   */
   const generateQuestion = async () => {
     if (loading) return;
     setLoading(true);
@@ -35,176 +48,272 @@ export default function Project1Demo() {
     }
   };
 
+  const suggestedLimit =
+    answer.length <= 20 ? 30 : answer.length <= 100 ? 45 : 60;
+  const compression = result
+    ? Math.round((1 - result.wordCount / result.originalLength) * 100)
+    : 0;
+
   return (
-    <div className="relative min-h-screen bg-gray-50 p-6">
+    <div className="deep-space relative min-h-screen p-6 py-12">
       {/* 语言切换 */}
       <div className="absolute top-4 end-4 z-50">
         <LanguageSwitcher />
       </div>
 
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">{t("project1_title")}</h1>
-          <p className="text-gray-600">{t("project1_desc")}</p>
+      <div className="relative z-10 max-w-5xl mx-auto space-y-8">
+        {/* 返回 + 标题区 */}
+        <div className="text-center space-y-3">
+          <Link
+            href="/"
+            className="inline-block text-xs text-cyan-300/80 hover:text-cyan-300 transition-colors"
+          >
+            ← {t("home_title")}
+          </Link>
+          <span className="block text-[11px] font-semibold tracking-[0.18em] uppercase text-cyan-300/80">
+            AI Follow-up Cockpit
+          </span>
+          <h1 className="text-3xl font-bold tracking-tight text-white">
+            {t("project1_title")}
+          </h1>
+          <p className="text-gray-400 max-w-2xl mx-auto">{t("project1_desc")}</p>
         </div>
 
-        {/* 单轮 / 多轮 模式切换 */}
-        <Tabs defaultValue="single" className="w-full">
-          <TabsList className="w-full">
-            <TabsTrigger value="single" className="flex-1">{t("single_turn_mode")}</TabsTrigger>
-            <TabsTrigger value="chat" className="flex-1">{t("chat_mode")}</TabsTrigger>
-          </TabsList>
+        {/* 模式切换分段控件 */}
+        <div className="mx-auto flex max-w-xs gap-1 rounded-xl border border-white/10 bg-white/[0.04] p-1">
+          <TabBtn on={tab === "single"} onClick={() => setTab("single")}>
+            {t("single_turn_mode")}
+          </TabBtn>
+          <TabBtn on={tab === "chat"} onClick={() => setTab("chat")}>
+            {t("chat_mode")}
+          </TabBtn>
+        </div>
 
-          {/* ===== 单轮追问 ===== */}
-          <TabsContent value="single">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{t("answer_input")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                placeholder={t("answer_placeholder")}
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                className="min-h-[120px]"
-              />
-              
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <span>{t("answer_count").replace("{n}", String(answer.length))}</span>
-                <span>{t("suggested_limit").replace("{n}", String(
-                  answer.length <= 20 ? 30 :
-                  answer.length <= 100 ? 45 : 60
-                ))}</span>
-              </div>
+        {/* ===== 单轮追问：控制台双栏 ===== */}
+        {tab === "single" && (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 左栏：输入参数 */}
+              <div className="glass-panel p-6 space-y-5">
+                <div className="section-label">{t("answer_input")}</div>
+                <Textarea
+                  placeholder={t("answer_placeholder")}
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  className="min-h-[110px] bg-white/5 border-white/10 text-gray-100 placeholder:text-gray-500 focus-visible:border-cyan-400/60 focus-visible:ring-cyan-400/20"
+                />
 
-              <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
-                <TabsList className="w-full">
-                  <TabsTrigger value="精简" className="flex-1">{t("mode_compact")}</TabsTrigger>
-                  <TabsTrigger value="标准" className="flex-1">{t("mode_standard")}</TabsTrigger>
-                  <TabsTrigger value="深度" className="flex-1">{t("mode_deep")}</TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              <div className="flex gap-2">
-                <Button 
-                  variant={device === "PC" ? "default" : "outline"} 
-                  onClick={() => setDevice("PC")}
-                  className="flex-1"
-                >
-                  {t("device_pc")}
-                </Button>
-                <Button 
-                  variant={device === "移动端" ? "default" : "outline"} 
-                  onClick={() => setDevice("移动端")}
-                  className="flex-1"
-                >
-                  {t("device_mobile")}
-                </Button>
-              </div>
-
-              <Button onClick={generateQuestion} disabled={loading} className="w-full">
-                {loading ? t("ai_loading") : t("generate_question")}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{t("question_output")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {result ? (
-                <>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-lg font-medium text-blue-900">{result.question}</p>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="text-center p-3 bg-gray-100 rounded-lg">
-                      <div className="text-2xl font-bold text-gray-900">{result.wordCount}</div>
-                      <div className="text-xs text-gray-500">{t("final_length")}</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-100 rounded-lg">
-                      <div className="text-2xl font-bold text-gray-900">{result.originalLength}</div>
-                      <div className="text-xs text-gray-500">{t("original_length")}</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-100 rounded-lg">
-                      <div className="text-lg font-bold text-gray-900">{result.strategy}</div>
-                      <div className="text-xs text-gray-500">{t("strategy")}</div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary">{t("mode_label").replace("{m}", mode)}</Badge>
-                    <Badge variant="secondary">{t("device_label").replace("{d}", device)}</Badge>
-                    <Badge variant="outline">{t("compression_rate").replace(
-                      "{n}",
-                      String(Math.round((1 - result.wordCount / result.originalLength) * 100))
-                    )}</Badge>
-                    {!usedAI && (
-                      <Badge variant="outline" className="text-gray-500">{t("ai_local_mode")}</Badge>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="text-center text-gray-400 py-12">
-                  {t("generate_question_hint")}
+                {/* 输入 / 建议字数 双仪表 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <StatTile value={String(answer.length)} label={t("final_length")} sub={t("char_unit")} tone="cyan" />
+                  <StatTile value={String(suggestedLimit)} label={t("suggested_limit")} sub={t("char_unit")} tone="violet" />
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
 
-        {history.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{t("recent_records")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {history.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm truncate flex-1 mr-4">{item.question}</span>
-                    <div className="flex gap-2 text-xs text-gray-500">
-                      <span>{item.wordCount}{t("char_unit")}</span>
-                      <span>·</span>
-                      <span>{item.strategy}</span>
+                {/* 模式分段控件 */}
+                <div>
+                  <div className="section-label mb-2">{t("strategy")}</div>
+                  <SegmentedControl
+                    options={[
+                      { value: "精简", label: t("mode_compact") },
+                      { value: "标准", label: t("mode_standard") },
+                      { value: "深度", label: t("mode_deep") },
+                    ]}
+                    value={mode}
+                    onChange={(v) => setMode(v as Mode)}
+                  />
+                </div>
+
+                {/* 设备分段控件 */}
+                <div>
+                  <div className="section-label mb-2">{t("device_pc").replace(/PC/, "Device")}</div>
+                  <SegmentedControl
+                    options={[
+                      { value: "PC", label: t("device_pc") },
+                      { value: "移动端", label: t("device_mobile") },
+                    ]}
+                    value={device}
+                    onChange={(v) => setDevice(v as Device)}
+                  />
+                </div>
+
+                {/* 流光生成按钮 */}
+                <button
+                  onClick={generateQuestion}
+                  disabled={loading}
+                  className="shimmer-btn w-full rounded-xl py-3.5 font-bold disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? t("ai_loading") : `⚡ ${t("generate_question")}`}
+                </button>
+              </div>
+
+              {/* 右栏：结果仪表 */}
+              <div className="glass-panel p-6 space-y-5">
+                <div className="section-label">{t("question_output")}</div>
+
+                {result ? (
+                  <div key={result.question} className="space-y-4 animate-cockpit-pop">
+                    {/* 结果高亮卡 */}
+                    <div className="rounded-xl border border-cyan-400/30 bg-cyan-400/5 p-4">
+                      <p className="text-lg font-medium text-cyan-100 leading-relaxed">
+                        {result.question}
+                      </p>
+                    </div>
+
+                    {/* 三联数字仪表 */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <StatTile value={String(result.wordCount)} label={t("final_length")} sub={t("char_unit")} tone="cyan" big />
+                      <StatTile value={String(result.originalLength)} label={t("original_length")} sub={t("char_unit")} tone="violet" big />
+                      <StatTile value={`${compression}%`} label={t("compression_rate")} sub="" tone="pink" big />
+                    </div>
+
+                    {/* 策略行 */}
+                    <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
+                      <span className="text-xs text-gray-400">{t("strategy")}</span>
+                      <span className="text-sm font-medium text-gray-100">{result.strategy}</span>
+                    </div>
+
+                    {/* 标签 */}
+                    <div className="flex flex-wrap gap-2">
+                      <Tag>{t("mode_label").replace("{m}", mode)}</Tag>
+                      <Tag>{t("device_label").replace("{d}", device)}</Tag>
+                      {!usedAI && <Tag tone="muted">{t("ai_local_mode")}</Tag>}
                     </div>
                   </div>
-                ))}
+                ) : (
+                  <div className="flex items-center justify-center text-gray-500 py-20 text-sm">
+                    {t("generate_question_hint")}
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            {/* 历史记录：左移高亮列表 */}
+            {history.length > 0 && (
+              <div className="glass-panel p-6">
+                <div className="section-label mb-3">{t("recent_records")}</div>
+                <div className="space-y-2">
+                  {history.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between gap-4 rounded-lg border-l-2 border-cyan-400/50 bg-white/[0.03] px-4 py-3 transition-all duration-300 hover:translate-x-1 hover:border-violet-400/70 hover:bg-white/[0.06]"
+                    >
+                      <span className="text-sm text-gray-200 truncate flex-1">{item.question}</span>
+                      <div className="flex gap-2 text-xs text-gray-500 shrink-0">
+                        <span className="stat-number font-semibold">{item.wordCount}{t("char_unit")}</span>
+                        <span>·</span>
+                        <span>{item.strategy}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
-          </TabsContent>
 
-          {/* ===== 多轮对话 ===== */}
-          <TabsContent value="chat">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">{t("chat_mode_title")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChatPanel />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        <Card className="bg-gray-100 border-0">
-          <CardContent className="pt-6">
-            <h3 className="font-semibold mb-2">{t("rule_title")}</h3>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• {t("rule_1")}</li>
-              <li>• {t("rule_2")}</li>
-              <li>• {t("rule_3")}</li>
-              <li>• {t("rule_4")}</li>
-              <li>• {t("rule_5")}</li>
-            </ul>
-          </CardContent>
-        </Card>
+        {/* ===== 多轮对话 ===== */}
+        {tab === "chat" && (
+          <div className="glass-panel p-6">
+            <ChatPanel />
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+/* ============================================================
+ * 以下为本页内部用的深空风小组件
+ * ============================================================ */
+
+/** 数字仪表小块 */
+function StatTile({
+  value,
+  label,
+  sub,
+  tone,
+  big = false,
+}: {
+  value: string;
+  label: string;
+  sub?: string;
+  tone: "cyan" | "violet" | "pink";
+  big?: boolean;
+}) {
+  const toneClass =
+    tone === "cyan"
+      ? "stat-number"
+      : tone === "violet"
+        ? "text-violet-300"
+        : "text-pink-300";
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-center transition-colors hover:bg-white/[0.07]">
+      <div className={`${big ? "text-2xl" : "text-base"} font-bold ${toneClass}`}>
+        {value}
+      </div>
+      <div className="text-[10px] uppercase tracking-wide text-gray-500 mt-1">{label}</div>
+      {sub ? <div className="text-[10px] text-gray-600">{sub}</div> : null}
+    </div>
+  );
+}
+
+/** 分段控件（模式 / 设备切换） */
+function SegmentedControl({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex gap-1 rounded-xl border border-white/10 bg-white/[0.04] p-1">
+      {options.map((opt) => {
+        const on = opt.value === value;
+        return (
+          <button
+            key={opt.value}
+            onClick={() => onChange(opt.value)}
+            className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+              on
+                ? "bg-violet-500/25 text-white shadow-[0_0_0_1px_rgba(124,92,255,0.4)]"
+                : "text-gray-400 hover:text-gray-200"
+            }`}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Tab 按钮 */
+function TabBtn({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+        on
+          ? "bg-cyan-400/15 text-cyan-300 shadow-[0_0_0_1px_rgba(34,211,238,0.4)]"
+          : "text-gray-400 hover:text-gray-200"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** 小标签 */
+function Tag({ children, tone = "cyan" }: { children: ReactNode; tone?: "cyan" | "muted" }) {
+  const cls =
+    tone === "muted"
+      ? "bg-white/5 text-gray-500 border-white/10"
+      : "bg-cyan-400/10 text-cyan-300 border-cyan-400/30";
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] ${cls}`}>
+      {children}
+    </span>
   );
 }

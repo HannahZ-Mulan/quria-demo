@@ -2,6 +2,14 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * 通用单行输入框组件。
+ * 是原生 <input> 的封装，套上了统一的外观（圆角、聚焦边框、禁用样式等）。
+ *
+ * @param className - 额外追加的类名
+ * @param type - 输入框类型，比如 "text"、"email"、"password"
+ * @param props - 其他原生 input 属性（value、onChange、placeholder 等）
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input

@@ -1,17 +1,26 @@
-// project1 multi-turn chat: AI acts as a professional interviewer and asks one
-// open-ended follow-up at a time, referencing prior context. Non-2xx => client falls back.
+// project1 多轮对话接口：让 AI 扮演专业访谈员，每次只问一个开放式追问，
+// 并结合上下文自然深入。如果返回非 2xx 错误，客户端会自动改用本地规则兜底。
 
 import { NextResponse } from "next/server";
 import { callDeepSeek, DeepSeekConfigError, extractStatus } from "@/lib/deepseek";
 import type { ChatMessage, ChatRequest } from "@/lib/types";
 
-const MAX_TURNS = 10; // keep the most recent 10 user+assistant turns (excludes system)
+// 最多保留最近 10 轮对话（不含 system 消息），用来控制成本和延迟
+const MAX_TURNS = 10;
+// 对话总字数上限，超过就从最旧的消息开始丢弃
 const MAX_TOTAL_CHARS = 8000;
 
+/**
+ * 裁剪对话历史，避免发给 AI 的内容过长（控制成本和延迟）。
+ * 先只保留最近 MAX_TURNS 轮，如果总字数还是超过上限，就继续从最旧的丢起。
+ *
+ * @param messages - 原始的全部对话消息
+ * @returns 裁剪后的对话消息
+ */
 function clampMessages(messages: ChatMessage[]): ChatMessage[] {
-  // Keep the most recent MAX_TURNS turns to control cost/latency.
+  // 只保留最近的 MAX_TURNS 轮
   const trimmed = messages.slice(-MAX_TURNS);
-  // If total chars exceed the cap, drop oldest messages until within budget.
+  // 如果总字数超限，就从最旧的消息开始丢弃，直到达标
   let total = trimmed.reduce((s, m) => s + m.content.length, 0);
   while (total > MAX_TOTAL_CHARS && trimmed.length > 1) {
     const removed = trimmed.shift()!;
@@ -20,6 +29,7 @@ function clampMessages(messages: ChatMessage[]): ChatMessage[] {
   return trimmed;
 }
 
+// 给 AI 的"系统提示词"：告诉它扮演什么角色、要遵守哪些规则
 const SYSTEM_PROMPT = [
   "你是一位专业的用户研究访谈员，正在进行一次一对一定性访谈。",
   "规则：",
@@ -32,6 +42,14 @@ const SYSTEM_PROMPT = [
   "如果受访者只是简短回应，用开放式问题鼓励展开。",
 ].join("\n");
 
+/**
+ * 处理多轮对话的 POST 请求。
+ * 接收对话历史 → 裁剪 → 调用 DeepSeek → 返回 AI 的下一句回复。
+ * 请求格式不对返回 400；AI 没配置返回 503；AI 调用失败返回对应错误码。
+ *
+ * @param request - 前端发来的请求，body 里带 messages 对话历史
+ * @returns JSON 响应：成功时 { reply, usedAI }，失败时 { error }
+ */
 export async function POST(request: Request) {
   let body: ChatRequest;
   try {

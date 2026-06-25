@@ -5,6 +5,16 @@ import { Slider as SliderPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * 滑块组件（拖动选数值的控件）。
+ * 封装自 Radix UI 的 Slider，支持单滑块或多滑块（范围选择）。
+ *
+ * @param className - 额外追加的类名
+ * @param defaultValue - 默认值（非受控时用）
+ * @param value - 当前值（受控时用）
+ * @param min - 最小值，默认 0
+ * @param max - 最大值，默认 100
+ */
 function Slider({
   className,
   defaultValue,
@@ -13,6 +23,7 @@ function Slider({
   max = 100,
   ...props
 }: React.ComponentProps<typeof SliderPrimitive.Root>) {
+  // 根据 value/defaultValue 算出有几个滑块手柄，用来渲染对应数量的圆点
   const _values = React.useMemo(
     () =>
       Array.isArray(value)

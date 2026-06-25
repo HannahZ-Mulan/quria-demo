@@ -2,6 +2,10 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * 卡片容器。整个卡片的外框，带圆角、阴影和内边距。
+ * @param size - 内边距大小："default"（默认）或 "sm"（更紧凑）
+ */
 function Card({
   className,
   size = "default",
@@ -20,6 +24,7 @@ function Card({
   )
 }
 
+/** 卡片头部区域，通常放标题。 */
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -33,6 +38,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** 卡片标题文字。 */
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -43,6 +49,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** 卡片描述文字（标题下方的副标题说明）。 */
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -53,6 +60,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** 卡片头部右侧的操作区（比如放一个小按钮）。 */
 function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -66,6 +74,7 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** 卡片主内容区。 */
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -76,6 +85,7 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** 卡片底部区域（比如放"确定/取消"按钮）。 */
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

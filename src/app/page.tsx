@@ -6,6 +6,12 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TiltCard } from "@/components/TiltCard";
 import { useI18n } from "@/i18n";
 
+/**
+ * 网站首页。
+ * 展示三个卡片入口：project1（追问优化）、project3（需求拆解）、产品文档。
+ * 用了 TiltCard 实现"鼠标移动时卡片 3D 倾斜"的炫酷效果。
+ * 右上角放了语言切换按钮。
+ */
 export default function Home() {
   const { t } = useI18n();
 

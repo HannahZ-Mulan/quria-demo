@@ -1,10 +1,11 @@
-// project3 TRD generation: AI produces a Technical Requirements Document
-// (Markdown) from a DecomposeResult. Non-2xx => client falls back to generateTrdByRule.
+// project3 生成 TRD 接口：让 AI 根据拆解结果，生成一份技术需求文档（Markdown 文本）。
+// 任何失败都返回非 2xx，客户端会自动改用 generateTrdByRule 本地规则兜底。
 
 import { NextResponse } from "next/server";
 import { callDeepSeek, DeepSeekConfigError, extractStatus } from "@/lib/deepseek";
 import type { TrdRequest } from "@/lib/types";
 
+// 给 AI 的系统提示词：规定它要生成哪些章节、输出纯 Markdown
 const SYSTEM_PROMPT = [
   "你是一位用户研究项目的技术方案撰写专家。根据给定的结构化研究拆解结果，生成一份技术需求文档（TRD）。",
   "输出纯 Markdown 文本（用 # 作为标题，不要 ``` 代码围栏）。包含以下章节，每节填具体内容：",
@@ -16,6 +17,14 @@ const SYSTEM_PROMPT = [
   "内容要具体、可执行，不要泛泛而谈。只输出文档本身，不要前后说明。",
 ].join("\n");
 
+/**
+ * 处理生成 TRD 的 POST 请求。
+ * 校验入参 → 把拆解结果拼成 AI 提示词 → 调用 DeepSeek → 返回文档文本。
+ * 入参不对返回 400；AI 没配置返回 503；调用失败或返回空返回对应错误码。
+ *
+ * @param request - 前端请求，body 含 result 拆解结果
+ * @returns JSON 响应：成功 { trd, usedAI }，失败 { error }
+ */
 export async function POST(request: Request) {
   let body: TrdRequest;
   try {

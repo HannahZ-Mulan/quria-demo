@@ -2,6 +2,13 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * 通用多行文本输入框组件。
+ * 是原生 <textarea> 的封装，套上了统一的外观，内容多时会自动变高。
+ *
+ * @param className - 额外追加的类名
+ * @param props - 其他原生 textarea 属性（value、onChange、placeholder 等）
+ */
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea

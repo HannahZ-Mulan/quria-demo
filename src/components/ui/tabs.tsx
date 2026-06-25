@@ -6,6 +6,12 @@ import { Tabs as TabsPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * 标签页容器（整个标签页组件的最外层）。
+ * 管理当前选中了哪个标签，子组件 TabsList/Trigger/Content 都要放在它里面。
+ *
+ * @param orientation - 排列方向："horizontal"（横向，默认）或 "vertical"（纵向）
+ */
 function Tabs({
   className,
   orientation = "horizontal",
@@ -24,6 +30,7 @@ function Tabs({
   )
 }
 
+/** 标签列表（标签按钮的容器）的外观变体配置。 */
 const tabsListVariants = cva(
   "group/tabs-list inline-flex w-fit items-center justify-center rounded-full p-1 text-muted-foreground group-data-horizontal/tabs:h-9 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col group-data-vertical/tabs:rounded-2xl data-[variant=line]:rounded-none",
   {
@@ -39,6 +46,10 @@ const tabsListVariants = cva(
   }
 )
 
+/**
+ * 标签列表：放所有标签按钮（TabsTrigger）的容器。
+ * @param variant - 外观风格："default"（带背景，默认）或 "line"（下划线样式）
+ */
 function TabsList({
   className,
   variant = "default",
@@ -55,6 +66,7 @@ function TabsList({
   )
 }
 
+/** 单个标签按钮（点它切换到对应的内容区）。 */
 function TabsTrigger({
   className,
   ...props
@@ -74,6 +86,7 @@ function TabsTrigger({
   )
 }
 
+/** 标签对应的内容区（选中某个标签后显示的那一块内容）。 */
 function TabsContent({
   className,
   ...props

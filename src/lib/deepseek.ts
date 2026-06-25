@@ -1,21 +1,31 @@
-// SERVER-ONLY: DeepSeek API client.
-// This module reads the API key from process.env.DEEPSEEK_API_KEY (no NEXT_PUBLIC_
-// prefix) and MUST only be imported from Route Handlers under src/app/api/**.
-// Importing it into a Client Component would bundle it (and a failed fetch), but
-// would never leak the key since the env var is stripped from the client bundle.
+// 这个文件是"服务端专用"的 DeepSeek AI 客户端。
+//
+// 重要：它只能被 src/app/api/** 下的接口（Route Handler）引用，不能在
+// 浏览器端组件里用。因为它会读取服务器上的环境变量 DEEPSEEK_API_KEY
+// （没有 NEXT_PUBLIC_ 前缀），这个密钥不会被打包到浏览器代码里，所以不会泄露。
 
-// A message in a DeepSeek conversation. Broader than the client-side ChatMessage
-// (user/assistant) because server prompts prepend a system message.
+/**
+ * DeepSeek 对话里的一条消息。
+ * 比客户端的 ChatMessage（只有 user/assistant）更宽，因为服务端会先放一句 system 消息。
+ */
 export interface DeepSeekMessage {
+  /** 说话的角色：system=系统设定, user=用户, assistant=AI 回复 */
   role: "system" | "user" | "assistant";
+  /** 消息内容 */
   content: string;
 }
 
+// DeepSeek 对话接口的网址
 const DEEPSEEK_ENDPOINT = "https://api.deepseek.com/chat/completions";
+// 使用的模型名称
 const DEEPSEEK_MODEL = "deepseek-chat";
+// 默认请求超时时间：30 秒
 const DEFAULT_TIMEOUT_MS = 30_000;
 
-/** Thrown when DEEPSEEK_API_KEY is not configured. Callers fall back to local rules. */
+/**
+ * 没有配置 API 密钥时抛出的错误。
+ * 调用方收到这个错误后，会改用本地规则兜底。
+ */
 export class DeepSeekConfigError extends Error {
   constructor() {
     super("DEEPSEEK_API_KEY is not configured");
@@ -23,8 +33,15 @@ export class DeepSeekConfigError extends Error {
   }
 }
 
-/** Thrown when the DeepSeek API returns a non-2xx status or invalid/empty payload. */
+/**
+ * DeepSeek 接口返回错误（非 2xx 状态码、或返回内容为空）时抛出的错误。
+ * 会带上 HTTP 状态码，方便接口返回合适的错误码。
+ */
 export class DeepSeekApiError extends Error {
+  /**
+   * @param message - 错误说明文字
+   * @param status - HTTP 状态码（比如 502、504）
+   */
   constructor(
     message: string,
     readonly status: number
@@ -34,27 +51,34 @@ export class DeepSeekApiError extends Error {
   }
 }
 
+/**
+ * 调用 DeepSeek 时的配置选项。
+ */
 export interface CallDeepSeekOptions {
-  /** Conversation messages (system prompt first). */
+  /** 对话消息列表（system 系统设定要放在第一个）。 */
   messages: DeepSeekMessage[];
   /**
-   * When provided, enables JSON output mode (`response_format: {type:"json_object"}`).
-   * The returned string is guaranteed to be parseable JSON. DeepSeek requires the
-   * prompt to mention "json" and include a schema/example — the caller is responsible
-   * for that when passing `jsonSchema`.
+   * 当填了这个值，会开启 JSON 输出模式。
+   * 返回的内容保证是可以解析的 JSON。DeepSeek 要求提示词里必须出现 "json" 字样
+   * 并给出示例格式，这个由调用方在写提示词时负责。
    */
   jsonSchema?: string;
-  /** Max generation tokens. Defaults to 1024. */
+  /** 最多生成多少个 token（字），默认 1024。 */
   maxTokens?: number;
-  /** Request timeout in ms. Defaults to 30s. */
+  /** 请求超时时间（毫秒），默认 30 秒。 */
   timeoutMs?: number;
-  /** Sampling temperature. Defaults to 0.7. */
+  /** 采样温度：越高越随机有创意，越低越稳定保守，默认 0.7。 */
   temperature?: number;
 }
 
 /**
- * Calls the DeepSeek Chat Completions endpoint and returns the assistant message content.
- * Throws DeepSeekConfigError if unconfigured, DeepSeekApiError on failure.
+ * 调用 DeepSeek 对话接口，返回 AI 生成的回复文字。
+ *
+ * - 没配置密钥 → 抛出 DeepSeekConfigError
+ * - 请求失败/超时/返回错误 → 抛出 DeepSeekApiError
+ *
+ * @param options - 调用配置（消息、超时、温度等）
+ * @returns AI 回复的文字内容
  */
 export async function callDeepSeek({
   messages,
@@ -68,6 +92,7 @@ export async function callDeepSeek({
     throw new DeepSeekConfigError();
   }
 
+  // 组装请求体
   const body: Record<string, unknown> = {
     model: DEEPSEEK_MODEL,
     messages,
@@ -75,8 +100,8 @@ export async function callDeepSeek({
     temperature,
   };
   if (jsonSchema) {
-    // DeepSeek is OpenAI-compatible: JSON output is enabled by this flag. The
-    // API mandates the prompt contains the word "json" (enforced by callers).
+    // DeepSeek 兼容 OpenAI 格式：加上这个标记就开启 JSON 输出。
+    // API 强制要求提示词里有 "json" 字样（由调用方保证）。
     body.response_format = { type: "json_object" };
   }
 
@@ -96,8 +121,10 @@ export async function callDeepSeek({
     });
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
+      // 请求超时被取消了
       throw new DeepSeekApiError("DeepSeek request timed out", 504);
     }
+    // 其他网络错误（比如断网）
     throw new DeepSeekApiError(
       `Network error calling DeepSeek: ${err instanceof Error ? err.message : String(err)}`,
       502
@@ -107,6 +134,7 @@ export async function callDeepSeek({
   }
 
   if (!res.ok) {
+    // 接口返回了 4xx/5xx 错误
     const detail = await res.text().catch(() => "");
     throw new DeepSeekApiError(
       `DeepSeek API error ${res.status}: ${detail.slice(0, 500)}`,
@@ -115,9 +143,10 @@ export async function callDeepSeek({
   }
 
   const data = await res.json();
+  // 从返回结构里取出 AI 回复的文字
   const content: string | undefined = data?.choices?.[0]?.message?.content;
   if (!content) {
-    // Known DeepSeek JSON-mode quirk: occasionally returns empty content.
+    // DeepSeek 的 JSON 模式有个已知小毛病：偶尔会返回空内容
     throw new DeepSeekApiError("DeepSeek returned empty content", 502);
   }
 
@@ -125,8 +154,12 @@ export async function callDeepSeek({
 }
 
 /**
- * Calls DeepSeek in JSON mode and parses the result. Throws DeepSeekApiError if the
- * returned string is not valid JSON (callers fall back to local rules).
+ * 用 JSON 模式调用 DeepSeek，并直接把结果解析成对象。
+ *
+ * 如果返回的文字不是合法的 JSON，就抛出 DeepSeekApiError（调用方会改用本地规则）。
+ *
+ * @param options - 调用配置（必须带上 jsonSchema）
+ * @returns 解析后的 JS 对象
  */
 export async function callDeepSeekJSON<T>(
   options: Omit<CallDeepSeekOptions, "jsonSchema"> & { jsonSchema: string }
@@ -140,8 +173,13 @@ export async function callDeepSeekJSON<T>(
 }
 
 /**
- * Safely extracts an HTTP-ish status from a caught error (DeepSeekApiError carries
- * one). Returns 500 for anything else so callers can return a sensible status code.
+ * 从捕获的错误里提取 HTTP 状态码。
+ *
+ * DeepSeekApiError 自带 status 字段，会直接返回；其他错误统一返回 500，
+ * 这样接口能返回一个合理的错误码给前端。
+ *
+ * @param err - catch 到的错误对象
+ * @returns HTTP 状态码数字
  */
 export function extractStatus(err: unknown): number {
   return err && typeof err === "object" && "status" in err && typeof err.status === "number"

@@ -4,6 +4,11 @@ import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * 按钮的各种"外观变体"和"尺寸"配置。
+ * cva 是 class-variance-authority 提供的工具，用来按条件生成不同的 CSS 类名。
+ * 这里定义了按钮的颜色风格（variant）和大小（size）。
+ */
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-4xl border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
@@ -39,6 +44,15 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * 通用按钮组件。可以通过 variant 切换颜色风格，通过 size 切换大小。
+ *
+ * @param className - 额外追加的类名（会和其他类名合并）
+ * @param variant - 外观风格：default/outline/secondary/ghost/destructive/link
+ * @param size - 尺寸：default/xs/sm/lg/icon 等
+ * @param asChild - 为 true 时，不渲染 <button>，而是把样式套到传入的子元素上
+ * @param props - 其他原生 button 属性
+ */
 function Button({
   className,
   variant = "default",
@@ -49,6 +63,7 @@ function Button({
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {
+  // asChild=true 时用 Slot 把样式传给子元素（比如套到 <a> 链接上），否则渲染真正的 <button>
   const Comp = asChild ? Slot.Root : "button"
 
   return (

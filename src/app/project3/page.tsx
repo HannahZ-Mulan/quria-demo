@@ -10,6 +10,16 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { callDecomposeAI, callTrdAI } from "@/lib/ai-client";
 import type { DecomposeResult } from "@/lib/types";
 
+/**
+ * project3 演示页：智能需求拆解。
+ *
+ * 流程：
+ * 1. 输入客户模糊的需求 → 点"智能拆解"，得到结构化方案（目标/人群/场景/类型等）；
+ * 2. 同时做质量检查：检测需求冲突、模糊用词、列出交付物；
+ * 3. 可再点"生成 TRD"，得到一份技术需求文档预览。
+ *
+ * 右上角有语言切换按钮。
+ */
 export default function Project3Demo() {
   const { t } = useI18n();
   const [rawRequirement, setRawRequirement] = useState("");
@@ -20,6 +30,10 @@ export default function Project3Demo() {
   const [loadingTrd, setLoadingTrd] = useState(false);
   const [usedAI, setUsedAI] = useState(true);
 
+  /**
+   * 拆解需求：调用 AI 接口（失败自动用本地规则），把模糊需求变成结构化方案。
+   * 同时会清空之前的 TRD 预览。
+   */
   const decompose = async () => {
     if (loadingDecompose) return;
     setLoadingDecompose(true);
@@ -34,6 +48,9 @@ export default function Project3Demo() {
     }
   };
 
+  /**
+   * 生成 TRD：根据拆解结果，调用 AI（失败用本地规则）生成技术需求文档，并显示出来。
+   */
   const generateTRD = async () => {
     if (!result || loadingTrd) return;
     setLoadingTrd(true);

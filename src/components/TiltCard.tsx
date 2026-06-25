@@ -30,9 +30,15 @@ export function TiltCard({
   glowColor = "rgba(34,211,238,0.28)",
   ...props
 }: TiltCardProps) {
+  // 引用卡片元素，用来读取它的大小和位置
   const ref = React.useRef<HTMLDivElement>(null);
+  // 卡片当前的倾斜状态：rx/ry 是旋转角度，mx/my 是辉光位置(0~100)，active 是是否激活
   const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, mx: 50, my: 50, active: false });
 
+  /**
+   * 鼠标在卡片上移动时的处理：根据鼠标位置实时算出倾斜角度和辉光位置。
+   * 只在精确指针（鼠标）设备上生效，触屏/手写笔不处理（保持静态）。
+   */
   const handleMove = React.useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       const el = ref.current;
@@ -50,6 +56,9 @@ export function TiltCard({
     [maxTilt],
   );
 
+  /**
+   * 鼠标离开卡片时：取消激活状态，让卡片平滑回弹复位。
+   */
   const handleLeave = React.useCallback(() => {
     setTilt((prev) => ({ ...prev, active: false }));
   }, []);

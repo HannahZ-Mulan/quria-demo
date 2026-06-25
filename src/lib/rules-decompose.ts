@@ -1,10 +1,24 @@
-// Local rule-based requirement decomposition + TRD generation.
-// Extracted VERBATIM from the original src/app/project3/page.tsx decompose() and
-// the inline TRD template (lines 389-416) so the offline fallback matches today's
-// output exactly. Used as silent fallback by ai-client.ts when DeepSeek is unavailable.
+// 本文件实现"基于规则"的需求拆解和 TRD（技术需求文档）生成，不依赖 AI。
+//
+// 它是从最初 project3/page.tsx 里的 decompose() 和内联 TRD 模板原样搬出来的，
+// 保证 AI 不可用时的兜底输出和原来"不用 AI"时完全一致。
+// 当 DeepSeek 没配置或调用失败时，ai-client.ts 会静默调用这里。
 
 import type { DecomposeResult } from "./types";
 
+/**
+ * 把客户一段模糊的需求文字，用固定规则拆解成结构化的研究结果。
+ *
+ * 工作原理：用正则表达式去原文里"找"关键信息，比如：
+ * - 研究目标（找"了解/研究/探索…"这类词）
+ * - 目标人群（找年龄段、性别、职业、地区）
+ * - 研究场景（产品/品牌/用户画像/竞品/满意度/购买）
+ * - 研究类型（定性/定量/混合）、访谈深度、样本量、周期
+ * - 最后还会检测冲突（大样本+短周期）和模糊用词（"尽快""大概"）
+ *
+ * @param rawRequirement - 客户原始的需求文字
+ * @returns 拆解后的结构化结果
+ */
 export function decomposeByRule(rawRequirement: string): DecomposeResult {
   const text = rawRequirement;
   const lowerText = text.toLowerCase();
@@ -256,9 +270,13 @@ export function decomposeByRule(rawRequirement: string): DecomposeResult {
 }
 
 /**
- * Generates the TRD preview string from a DecomposeResult.
- * Reproduces the original inline template from project3/page.tsx:389-416 verbatim,
- * returning it as a string so the UI can render the same "code block" style.
+ * 根据拆解结果，用固定模板拼出一份技术需求文档（TRD）的文本。
+ *
+ * 它原样复刻了 project3/page.tsx 里 389-416 行的内联模板，
+ * 以字符串形式返回，让页面能用同样的"代码块"样式渲染出来。
+ *
+ * @param result - 之前拆解得到的结构化结果
+ * @returns 一段 Markdown 格式的 TRD 文本
  */
 export function generateTrdByRule(result: DecomposeResult): string {
   const depthMode = result.depth.includes("L3")

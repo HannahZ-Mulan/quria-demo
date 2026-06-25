@@ -1,14 +1,24 @@
-// project1 single-turn follow-up: AI generates a research follow-up question that
-// respects the length ceiling derived from answer length / mode / device.
-// Returns a non-2xx on any failure so ai-client.ts falls back to local rules.
+// project1 单轮追问接口：让 AI 生成一句符合字数限制的追问。
+// 字数限制根据"回答长度 / 模式 / 设备"动态计算。
+// 任何失败都会返回非 2xx，客户端会自动改用本地规则兜底。
 
 import { NextResponse } from "next/server";
 import { callDeepSeekJSON, DeepSeekConfigError, extractStatus } from "@/lib/deepseek";
 import type { FollowupRequest } from "@/lib/types";
 
+// 回答文字的最大长度（防止有人输入超长内容）
 const MAX_ANSWER_LEN = 2000;
 
-/** Mirrors project1/page.tsx length-ceiling rules so the AI prompt stays accurate. */
+/**
+ * 根据回答长度、模式、设备，算出本次追问允许的最大字数。
+ * 这套规则和 project1/page.tsx 页面上显示的"建议限制"保持一致，
+ * 这样 AI 提示词里告诉它的限制才是准确的。
+ *
+ * @param answerLength - 回答的字数（去掉首尾空格后）
+ * @param mode - 追问详细程度（精简/标准/深度）
+ * @param device - 设备类型（PC/移动端）
+ * @returns 允许的最大字数
+ */
 function maxLengthFor(answerLength: number, mode: string, device: string): number {
   let max: number;
   if (answerLength <= 20) max = 30;
@@ -20,6 +30,14 @@ function maxLengthFor(answerLength: number, mode: string, device: string): numbe
   return max;
 }
 
+/**
+ * 处理单轮追问的 POST 请求。
+ * 校验入参 → 计算字数限制 → 拼 AI 提示词 → 调用 DeepSeek（JSON 模式）→ 返回追问。
+ * 入参不对返回 400；回答太长返回 413；AI 没配置返回 503；调用失败返回对应错误码。
+ *
+ * @param request - 前端请求，body 含 answer/mode/device
+ * @returns JSON 响应：成功 { question, strategy, usedAI }，失败 { error }
+ */
 export async function POST(request: Request) {
   let body: FollowupRequest;
   try {
