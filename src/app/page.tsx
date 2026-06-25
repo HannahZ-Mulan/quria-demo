@@ -87,9 +87,9 @@ export default function Home() {
             <div className="flex h-full min-h-[280px] flex-col justify-between p-7">
               <div className="space-y-4">
                 <span className="text-3xl">📄</span>
-                <h3 className="text-lg font-semibold text-white">产品文档</h3>
+                <h3 className="text-lg font-semibold text-white">{t("docs_card_title")}</h3>
                 <p className="text-sm text-gray-400 leading-relaxed">
-                  完整的产品需求文档和软件需求规格说明书，包含用户故事、验收标准、技术架构。
+                  {t("docs_card_desc")}
                 </p>
               </div>
               <a
@@ -102,7 +102,7 @@ export default function Home() {
                   variant="outline"
                   className="w-full bg-pink-400/15 text-pink-300 border-pink-400/40 hover:bg-pink-400 hover:text-slate-950 transition-all"
                 >
-                  查看文档 →
+                  {t("view_docs")} →
                 </Button>
               </a>
             </div>
@@ -111,7 +111,7 @@ export default function Home() {
 
         {/* 底部说明 */}
         <div className="text-center text-sm text-gray-500">
-          基于对 Quria 产品的实际体验设计 · 2026
+          {t("home_footer")}
         </div>
       </div>
     </div>

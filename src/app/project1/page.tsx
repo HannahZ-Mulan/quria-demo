@@ -20,7 +20,7 @@ import type { Mode, Device, QuestionResult } from "@/lib/types";
  * 最近 5 条历史。仅外壳样式从灰白 Card 重构为深空控制台。
  */
 export default function Project1Demo() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [tab, setTab] = useState<"single" | "chat">("single");
 
   const [answer, setAnswer] = useState("");
@@ -39,7 +39,7 @@ export default function Project1Demo() {
     if (loading) return;
     setLoading(true);
     try {
-      const { data, usedAI: ai } = await callFollowupAI(answer, mode, device);
+      const { data, usedAI: ai } = await callFollowupAI(answer, mode, device, lang);
       setResult(data);
       setUsedAI(ai);
       setHistory((prev) => [data, ...prev].slice(0, 5));
@@ -125,7 +125,7 @@ export default function Project1Demo() {
 
                 {/* 设备分段控件 */}
                 <div>
-                  <div className="section-label mb-2">{t("device_pc").replace(/PC/, "Device")}</div>
+                  <div className="section-label mb-2">{t("device_section_label")}</div>
                   <SegmentedControl
                     options={[
                       { value: "PC", label: t("device_pc") },

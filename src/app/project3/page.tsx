@@ -42,7 +42,7 @@ export default function Project3Demo() {
 
   // 对话气泡列表
   const [bubbles, setBubbles] = useState<Bubble[]>([
-    { id: 0, kind: "bot", text: "👋 你好！我是需求拆解助手。把客户一段模糊的需求发给我，我会帮你拆解成结构化方案、做质量检查，还能一键生成技术需求文档（TRD）。" },
+    { id: 0, kind: "bot", text: t("p3_welcome") },
   ]);
   // 当前到达的步骤（决定顶部进度条 + 可用的快捷 chip）
   const [step, setStep] = useState<Step>("input");
@@ -83,9 +83,10 @@ export default function Project3Demo() {
       // AI 用一段文字概述，再用卡片呈现完整结构化结果
       pushBot(
         <>
-          ✅ 拆解完成！研究目标：<b className="text-cyan-300">{decomposed.researchGoal}</b>；
-          建议样本 <b className="text-violet-300">{decomposed.sampleSize}</b>；
-          预计周期 <b className="text-pink-300">{decomposed.duration}</b>。完整方案见下方卡片：
+          ✅ {t("p3_decompose_done")
+            .replace("{goal}", decomposed.researchGoal)
+            .replace("{sample}", decomposed.sampleSize)
+            .replace("{duration}", decomposed.duration)}
         </>,
       );
       pushCard(<ResultCard r={decomposed} />);
@@ -102,12 +103,12 @@ export default function Project3Demo() {
     const ok = result.fuzzyMarks.length === 0 && result.conflicts.length === 0;
     pushBot(
       ok ? (
-        <>✅ 质量检查通过：需求清晰，无明显冲突。</>
+        <>✅ {t("p3_check_ok")}</>
       ) : (
         <>
-          🔍 质量检查完成。发现{" "}
-          <b className="text-yellow-300">{result.fuzzyMarks.length} 处模糊用词</b>、{" "}
-          <b className="text-red-300">{result.conflicts.length} 处潜在冲突</b>，详见下方：
+          🔍 {t("p3_check_found")
+            .replace("{fuzzy}", String(result.fuzzyMarks.length))
+            .replace("{conflict}", String(result.conflicts.length))}
         </>
       ),
     );
@@ -118,12 +119,12 @@ export default function Project3Demo() {
   const handleTrd = async () => {
     if (!result || loading) return;
     setLoading("trd");
-    pushUser("📄 生成技术需求文档（TRD）");
+    pushUser(`📄 ${t("p3_trd_request")}`);
 
     try {
       const { trd, usedAI: ai } = await callTrdAI(result);
       setUsedAI(ai);
-      pushBot("📝 TRD 已生成，预览如下（可导出 Markdown / PDF，或同步到 Jira）：");
+      pushBot(`📝 ${t("p3_trd_intro")}`);
       pushCard(<TrdCard text={trd} />);
     } finally {
       setLoading(null);
@@ -135,7 +136,7 @@ export default function Project3Demo() {
     setRawRequirement("");
     setResult(null);
     setStep("input");
-    pushBot("🔄 已重置。把新的需求发给我吧。");
+    pushBot(`🔄 ${t("p3_reset_done")}`);
   };
 
   return (
@@ -335,6 +336,7 @@ function ResultCard({ r }: { r: DecomposeResult }) {
     { k: t("field_depth"), v: r.depth },
     { k: t("field_sample_size"), v: r.sampleSize, tone: "pink" },
     { k: t("field_duration"), v: r.duration, tone: "pink" },
+    { k: t("field_interview_duration"), v: r.interviewDuration },
     { k: t("field_strategy"), v: r.strategy },
   ];
   const toneText: Record<string, string> = {
@@ -409,6 +411,38 @@ function QualityCard({ r }: { r: DecomposeResult }) {
 /* ---- TRD 预览卡片 ---- */
 function TrdCard({ text }: { text: string }) {
   const { t } = useI18n();
+  // 复制按钮的反馈状态：复制成功后短暂显示「已复制」
+  const [copied, setCopied] = useState(false);
+
+  /** 下载 TRD 为 Markdown 文件（Blob + 临时下载链接） */
+  const handleExportMd = () => {
+    const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "TRD.md";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  /** 调用浏览器打印（用户可在此对话框里「另存为 PDF」） */
+  const handleExportPdf = () => {
+    window.print();
+  };
+
+  /** 复制 TRD 全文到剪贴板，并短暂显示成功反馈 */
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // 剪贴板不可用时静默失败（部分浏览器需 HTTPS 或用户授权）
+    }
+  };
+
   return (
     <div className="glass-panel mx-auto max-w-[88%] space-y-3 p-4">
       <div className="section-label">{t("trd_preview")}</div>
@@ -416,14 +450,23 @@ function TrdCard({ text }: { text: string }) {
         {text}
       </pre>
       <div className="flex flex-wrap gap-2">
-        <button className="rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-gray-200 transition-colors hover:bg-white/[0.12]">
+        <button
+          onClick={handleExportMd}
+          className="rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-gray-200 transition-colors hover:bg-white/[0.12]"
+        >
           {t("export_md")}
         </button>
-        <button className="rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-gray-200 transition-colors hover:bg-white/[0.12]">
+        <button
+          onClick={handleExportPdf}
+          className="rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-gray-200 transition-colors hover:bg-white/[0.12]"
+        >
           {t("export_pdf")}
         </button>
-        <button className="rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-gray-200 transition-colors hover:bg-white/[0.12]">
-          {t("sync_jira")}
+        <button
+          onClick={handleCopy}
+          className="rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-gray-200 transition-colors hover:bg-white/[0.12]"
+        >
+          {copied ? `✅ ${t("copy_done")}` : t("sync_jira")}
         </button>
       </div>
     </div>

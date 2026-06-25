@@ -17,7 +17,7 @@ import type { ChatMessage } from "@/lib/types";
  * 仅外观改为深空风：用户气泡用紫青渐变、AI 气泡用玻璃质感、"打字中"三点跳动。
  */
 export function ChatPanel() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   // 对话消息列表（用户和 AI 来回的内容）
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // 输入框里当前的文字
@@ -49,7 +49,7 @@ export function ChatPanel() {
     setLoading(true);
 
     try {
-      const { reply, usedAI: ai } = await callChatAI(nextMessages);
+      const { reply, usedAI: ai } = await callChatAI(nextMessages, lang);
       setMessages([...nextMessages, { role: "assistant", content: reply }]);
       setUsedAI(ai);
     } finally {
@@ -112,13 +112,27 @@ export function ChatPanel() {
         )}
       </div>
 
-      {/* 本地模式提示 + 发送快捷键提示 */}
+      {/* 本地模式提示 + 发送快捷键提示 + 清除历史 */}
       <div className="flex items-center justify-between gap-2">
-        {!usedAI && (
-          <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-gray-500">
-            {t("ai_local_mode")}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {!usedAI && (
+            <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-gray-500">
+              {t("ai_local_mode")}
+            </span>
+          )}
+          {messages.length > 0 && (
+            <button
+              onClick={() => {
+                setMessages([]);
+                setUsedAI(true);
+              }}
+              className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-gray-500 transition-colors hover:text-gray-200 hover:bg-white/10"
+              title={t("clear_history")}
+            >
+              🗑 {t("clear_history")}
+            </button>
+          )}
+        </div>
         <span className="ms-auto text-xs text-gray-500">{t("chat_send_hint")}</span>
       </div>
 
