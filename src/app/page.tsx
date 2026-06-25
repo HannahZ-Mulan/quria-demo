@@ -1,91 +1,110 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { TiltCard } from "@/components/TiltCard";
 import { useI18n } from "@/i18n";
 
-const languages = [
-  { code: "zh-CN", label: "简体中文" },
-  { code: "zh-TW", label: "繁體中文" },
-  { code: "en", label: "English" },
-  { code: "yue", label: "粵語" },
-  { code: "ja", label: "日本語" },
-];
-
 export default function Home() {
-  const { t, lang, setLang } = useI18n();
+  const { t } = useI18n();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <div className="max-w-4xl w-full space-y-8">
-        {/* 语言切换 */}
-        <div className="flex justify-center gap-2">
-          {languages.map((l) => (
-            <Button
-              key={l.code}
-              variant={lang === l.code ? "default" : "outline"}
-              size="sm"
-              onClick={() => setLang(l.code as any)}
-            >
-              {l.label}
-            </Button>
-          ))}
+    <div className="aurora-stage flex items-center justify-center p-6 py-16">
+      {/* 语言切换 */}
+      <div className="absolute top-4 end-4 z-50">
+        <LanguageSwitcher />
+      </div>
+
+      <div className="relative z-10 max-w-5xl w-full space-y-12">
+        {/* 标题区 */}
+        <div className="text-center space-y-3">
+          <span className="inline-block text-xs font-semibold tracking-[0.18em] uppercase text-cyan-300/90 bg-cyan-400/10 border border-cyan-400/20 rounded-full px-4 py-1.5">
+            Quria · Product Optimization
+          </span>
+          <h1 className="text-5xl font-bold tracking-tight text-white">
+            {t("home_title").split(" ").slice(0, -1).join(" ") || t("home_title")}{" "}
+            <span className="text-gradient-aurora">
+              {t("home_title").split(" ").slice(-1)}
+            </span>
+          </h1>
+          <p className="text-gray-400 max-w-2xl mx-auto">{t("home_subtitle")}</p>
         </div>
 
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-gray-900">{t("home_title")}</h1>
-          <p className="text-gray-600">{t("home_subtitle")}</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-xl text-blue-900">{t("project1_title")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <h3 className="font-semibold text-lg">AI {t("project1_title").split("：")[1]}</h3>
-              <p className="text-sm text-gray-600">{t("project1_desc")}</p>
-              <Link href="/project1">
-                <Button className="w-full">{t("view_demo")}</Button>
+        {/* 卡片区：方案 B · 3D 透视跟随 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <TiltCard className="bg-gradient-to-br from-slate-900/80 to-slate-950/80 border border-white/10 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.6)] backdrop-blur-sm">
+            <div className="flex h-full min-h-[280px] flex-col justify-between p-7">
+              <div className="space-y-4">
+                <span className="text-3xl">✨</span>
+                <h3 className="text-lg font-semibold text-white">
+                  {t("project1_title").split("：")[1] ?? t("project1_title")}
+                </h3>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  {t("project1_desc")}
+                </p>
+              </div>
+              <Link href="/project1" className="block mt-6">
+                <Button className="w-full bg-cyan-400/15 text-cyan-300 border border-cyan-400/40 hover:bg-cyan-400 hover:text-slate-950 transition-all">
+                  {t("view_demo")} →
+                </Button>
               </Link>
-            </CardContent>
-          </Card>
+            </div>
+          </TiltCard>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-xl text-green-900">{t("project3_title")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <h3 className="font-semibold text-lg">{t("project3_title").split("：")[1]}</h3>
-              <p className="text-sm text-gray-600">{t("project3_desc")}</p>
-              <Link href="/project3">
-                <Button className="w-full">{t("view_demo")}</Button>
+          <TiltCard
+            className="bg-gradient-to-br from-slate-900/80 to-slate-950/80 border border-white/10 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.6)] backdrop-blur-sm"
+            glowColor="rgba(167, 139, 250, 0.30)"
+          >
+            <div className="flex h-full min-h-[280px] flex-col justify-between p-7">
+              <div className="space-y-4">
+                <span className="text-3xl">🧩</span>
+                <h3 className="text-lg font-semibold text-white">
+                  {t("project3_title").split("：")[1] ?? t("project3_title")}
+                </h3>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  {t("project3_desc")}
+                </p>
+              </div>
+              <Link href="/project3" className="block mt-6">
+                <Button className="w-full bg-violet-400/15 text-violet-300 border border-violet-400/40 hover:bg-violet-400 hover:text-slate-950 transition-all">
+                  {t("view_demo")} →
+                </Button>
               </Link>
-            </CardContent>
-          </Card>
+            </div>
+          </TiltCard>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-xl text-purple-900">产品文档</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <h3 className="font-semibold text-lg">PRD + SRS</h3>
-              <p className="text-sm text-gray-600">
-                完整的产品需求文档和软件需求规格说明书，包含用户故事、验收标准、技术架构。
-              </p>
-              <a 
-                href="https://github.com/HannahZ-Mulan/quria-demo#产品文档" 
-                target="_blank" 
+          <TiltCard
+            className="bg-gradient-to-br from-slate-900/80 to-slate-950/80 border border-white/10 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.6)] backdrop-blur-sm"
+            glowColor="rgba(244, 114, 182, 0.30)"
+          >
+            <div className="flex h-full min-h-[280px] flex-col justify-between p-7">
+              <div className="space-y-4">
+                <span className="text-3xl">📄</span>
+                <h3 className="text-lg font-semibold text-white">产品文档</h3>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  完整的产品需求文档和软件需求规格说明书，包含用户故事、验收标准、技术架构。
+                </p>
+              </div>
+              <a
+                href="https://github.com/HannahZ-Mulan/quria-demo#产品文档"
+                target="_blank"
                 rel="noopener noreferrer"
+                className="block mt-6"
               >
-                <Button variant="outline" className="w-full">查看文档</Button>
+                <Button
+                  variant="outline"
+                  className="w-full bg-pink-400/15 text-pink-300 border-pink-400/40 hover:bg-pink-400 hover:text-slate-950 transition-all"
+                >
+                  查看文档 →
+                </Button>
               </a>
-            </CardContent>
-          </Card>
+            </div>
+          </TiltCard>
         </div>
 
-        <div className="text-center text-sm text-gray-400">
+        {/* 底部说明 */}
+        <div className="text-center text-sm text-gray-500">
           基于对 Quria 产品的实际体验设计 · 2026
         </div>
       </div>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quria UI 优化 · 3 个方案选型 Spec</title>
+<style>
+  :root{
+    --page-bg:#0a0b14;
+    --page-text:#e6e8f0;
+    --muted:#9aa0b4;
+    --accent:#7c5cff;
+    --line:rgba(255,255,255,.08);
+    --radius:24px;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--font);
+    background:var(--page-bg);
+    color:var(--page-text);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:64px 28px 96px}
+
+  /* ---------- 顶部标题区 ---------- */
+  .hero{text-align:center;margin-bottom:56px}
+  .hero .eyebrow{
+    display:inline-block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);background:rgba(124,92,255,.12);
+    padding:6px 14px;border-radius:999px;border:1px solid rgba(124,92,255,.25);
+    margin-bottom:18px;
+  }
+  .hero h1{font-size:38px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+  .hero h1 .grad{
+    background:linear-gradient(110deg,#7c5cff,#22d3ee 60%,#ec4899);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p{margin-top:14px;color:var(--muted);font-size:16px;max-width:620px;margin-left:auto;margin-right:auto}
+  .hint{
+    margin-top:22px;font-size:13px;color:var(--muted);
+    background:rgba(255,255,255,.04);border:1px dashed var(--line);
+    border-radius:12px;padding:10px 16px;display:inline-block;
+  }
+  .hint b{color:#fff}
+
+  /* ---------- 通用：每个方案容器 ---------- */
+  .option{margin-top:72px;scroll-margin-top:24px}
+  .opt-head{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+  .opt-tag{
+    font-size:12px;font-weight:700;letter-spacing:.08em;
+    padding:5px 12px;border-radius:8px;
+    background:var(--accent);color:#fff;
+  }
+  .opt-head h2{font-size:26px;font-weight:700;letter-spacing:-.01em}
+  .opt-sub{color:var(--muted);font-size:14.5px;margin-bottom:24px;max-width:760px}
+
+  /* 方案对比元信息条 */
+  .meta{
+    display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px;
+    font-size:12.5px;
+  }
+  .meta span{
+    background:rgba(255,255,255,.05);border:1px solid var(--line);
+    padding:6px 12px;border-radius:999px;color:var(--muted);
+  }
+  .meta span b{color:#fff;font-weight:600}
+  .meta .star{color:#ffd166}
+
+  /* 演示舞台（各方案卡片容器） */
+  .stage{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:22px;
+    padding:46px 28px;border-radius:28px;margin-bottom:26px;
+    border:1px solid var(--line);
+  }
+  .stage-label{
+    font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;
+    margin-bottom:30px;text-align:center;
+  }
+  @media(max-width:760px){
+    .stage{grid-template-columns:1fr;padding:28px 16px}
+    .hero h1{font-size:28px}
+  }
+
+  /* 公共卡片基础（每个方案各自覆盖） */
+  .card-base{
+    position:relative;border-radius:var(--radius);padding:26px 24px;
+    min-height:230px;display:flex;flex-direction:column;justify-content:space-between;
+    cursor:pointer;overflow:hidden;
+  }
+  .card-base .ic{font-size:30px;margin-bottom:14px;display:block}
+  .card-base .ct{font-size:18px;font-weight:700;margin-bottom:8px}
+  .card-base .cd{font-size:13px;color:var(--muted);margin-bottom:18px}
+  .card-base .cb{
+    display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;
+    padding:9px 16px;border-radius:999px;align-self:flex-start;
+  }
+
+  .desc{
+    font-size:13.5px;color:var(--muted);
+    background:rgba(255,255,255,.04);border:1px solid var(--line);
+    border-radius:12px;padding:12px 16px;margin-top:6px;
+  }
+  .desc b{color:#fff}
+
+  /* ============================================================
+     方案 A · 极光玻璃拟态 Glassmorphism Aurora
+     ============================================================ */
+  #stage-a{
+    background:
+      radial-gradient(45vw 45vw at 15% 25%, rgba(124,92,255,.35), transparent 60%),
+      radial-gradient(40vw 40vw at 85% 65%, rgba(34,211,238,.30), transparent 60%),
+      radial-gradient(35vw 35vw at 60% 15%, rgba(236,72,153,.28), transparent 60%),
+      #0c0e1a;
+  }
+  .card-a{
+    background:rgba(255,255,255,.06);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 10px 30px -12px rgba(0,0,0,.6);
+    transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .5s,border-color .5s;
+  }
+  .card-a::after{
+    content:'';position:absolute;inset:0;border-radius:var(--radius);
+    background:linear-gradient(120deg,transparent 32%,rgba(255,255,255,.22) 50%,transparent 68%);
+    background-size:220% 100%;background-position:200% 0;
+    transition:background-position .7s ease;pointer-events:none;
+  }
+  .card-a:hover{
+    transform:translateY(-12px) rotate(-.7deg);
+    box-shadow:0 32px 60px -22px rgba(0,0,0,.85);
+    border-color:rgba(255,255,255,.4);
+  }
+  .card-a:hover::after{background-position:-90% 0}
+  .card-a .ct{color:#fff}
+  .card-a .cb{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.25)}
+  .card-a:hover .cb{background:#fff;color:#1a1a2e}
+
+  /* ============================================================
+     方案 B · 3D 透视跟随 Tilt Card
+     ============================================================ */
+  #stage-b{background:radial-gradient(circle at 50% 0%, #11162a, #070912)}
+  #stage-b{perspective:1100px}
+  .card-b{
+    background:linear-gradient(150deg,#161b2e,#0c0f1a);
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 0 0 rgba(0,0,0,0);
+    transform-style:preserve-3d;
+    transition:transform .18s ease-out,box-shadow .4s;
+    color:#e6e8f0;
+  }
+  /* 霓虹边框层 */
+  .card-b::before{
+    content:'';position:absolute;inset:0;border-radius:var(--radius);padding:1px;
+    background:linear-gradient(130deg,#22d3ee,#7c5cff,#ec4899);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    opacity:.5;transition:opacity .4s;
+  }
+  /* 跟随鼠标的辉光层 */
+  .card-b .glow{
+    position:absolute;inset:0;border-radius:var(--radius);pointer-events:none;
+    background:radial-gradient(50% 50% at 50% 50%, rgba(34,211,238,.18), transparent 70%);
+    opacity:0;transition:opacity .4s;
+  }
+  /* 用 :hover 时给一个默认 tilt，真实跟随由 JS 增强 */
+  .card-b:hover{
+    transform:translateY(-10px) rotateX(8deg) rotateY(-8deg) translateZ(20px);
+    box-shadow:-18px 28px 60px -22px rgba(37,99,235,.5),
+               18px 28px 60px -22px rgba(6,182,212,.5);
+  }
+  .card-b:hover::before{opacity:1}
+  .card-b:hover .glow{opacity:1}
+  .card-b .ct{color:#fff}
+  .card-b .cb{background:rgba(34,211,238,.16);color:#67e8f9;border:1px solid rgba(34,211,238,.4)}
+  .card-b:hover .cb{background:#22d3ee;color:#06222b}
+
+  /* ============================================================
+     方案 C · 弹性分层浮起 Spring Parallax
+     ============================================================ */
+  #stage-c{background:linear-gradient(180deg,#f6f3ff,#eef2ff)}
+  /* 浅色舞台，文字反色 */
+  #stage-c .stage-label{color:#6b6f8a}
+  .card-c{
+    background:#ffffff;
+    border:1px solid #ece6ff;
+    box-shadow:0 6px 22px -10px rgba(124,92,255,.22);
+    color:#2a2440;
+    transition:transform .6s cubic-bezier(.34,1.56,.64,1),box-shadow .45s;
+  }
+  .card-c:hover{
+    transform:translateY(-14px);
+    box-shadow:0 34px 56px -18px rgba(124,92,255,.4);
+  }
+  .card-c .ic,.card-c .ct{transition:transform .6s cubic-bezier(.34,1.56,.64,1),color .4s}
+  .card-c:hover .ic{transform:translateY(-8px) scale(1.14) rotate(-5deg)}
+  .card-c .ct{color:#4c1d95}
+  .card-c:hover .ct{transform:translateY(-4px);color:#7c5cff}
+  .card-c .cd{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+  .card-c:hover .cd{transform:translateY(-2px)}
+  .card-c .cb{
+    background:#f3efff;color:#7c5cff;border:1px solid #e2d8ff;
+    transition:transform .5s cubic-bezier(.34,1.56,.64,1),background .35s,color .35s;
+  }
+  .card-c:hover .cb{transform:translateY(-3px);background:#7c5cff;color:#fff}
+
+  /* ---------- 底部对比表 ---------- */
+  .compare{margin-top:88px}
+  .compare h2{font-size:22px;margin-bottom:6px}
+  .compare .opt-sub{margin-bottom:20px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;background:rgba(255,255,255,.03);border-radius:16px;overflow:hidden}
+  th,td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:rgba(255,255,255,.04);color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+  td b{color:#fff}
+  tr:last-child td{border-bottom:none}
+  td:first-child{color:var(--accent);font-weight:600}
+
+  .footer{text-align:center;margin-top:64px;color:var(--muted);font-size:12.5px}
+  .pillrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  .pillrow a{
+    font-size:13px;color:#fff;text-decoration:none;font-weight:600;
+    background:var(--accent);padding:10px 20px;border-radius:999px;
+    transition:transform .3s,box-shadow .3s;
+  }
+  .pillrow a:hover{transform:translateY(-3px);box-shadow:0 12px 24px -8px rgba(124,92,255,.6)}
+  .pillrow a.alt{background:rgba(255,255,255,.08);border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero">
+    <span class="eyebrow">UI Optimization · Spec</span>
+    <h1>让 Quria 的 UI <span class="grad">高级、灵动、活起来</span></h1>
+    <p>当前首页是 shadcn 默认卡片 + 平淡的 <code>hover:shadow-lg</code>，缺乏层次与呼吸感。下面给出 <b>3 个优化方向</b>，均满足「卡片 hover 浮动 + 整体灵动」的核心诉求，气质与复杂度各异。</p>
+    <div class="hint">💡 <b>把鼠标移到下方任意卡片上</b>，即可实时体验每个方案的浮动 / 灵动效果。</div>
+  </section>
+
+  <!-- ===================== 方案 A ===================== -->
+  <section class="option" id="opt-a">
+    <div class="opt-head">
+      <span class="opt-tag">方案 A</span>
+      <h2>极光玻璃拟态 · Glassmorphism Aurora</h2>
+    </div>
+    <p class="opt-sub">毛玻璃卡片 + 流动的极光渐变背景。hover 时卡片<b>向上浮起、微倾斜</b>，并有一道<b>光泽从左扫到右</b>。整体克制、通透、高级感强，最贴合「灵动」二字。</p>
+    <div class="meta">
+      <span>气质：<b>通透 / 梦幻 / 优雅</b></span>
+      <span>配色：深蓝夜空 + 紫青粉极光</span>
+      <span>复杂度：<b>低</b>（纯 CSS，无 JS）</span>
+      <span>性能：优</span>
+      <span class="star">推荐场景：品牌首页、展示型落地页</span>
+    </div>
+
+    <div class="stage" id="stage-a">
+      <div class="card-base card-a">
+        <div>
+          <span class="ic">✨</span>
+          <div class="ct">AI 追问长度优化</div>
+          <div class="cd">根据回答动态控制追问字数，移动端友好。</div>
+        </div>
+        <span class="cb">查看演示 →</span>
+      </div>
+      <div class="card-base card-a">
+        <div>
+          <span class="ic">🧩</span>
+          <div class="ct">需求标准化拆解</div>
+          <div class="cd">模糊需求 → 结构化技术方案，一键生成 TRD。</div>
+        </div>
+        <span class="cb">查看演示 →</span>
+      </div>
+      <div class="card-base card-a">
+        <div>
+          <span class="ic">📄</span>
+          <div class="ct">产品文档</div>
+          <div class="cd">完整的 PRD 与 SRS，含验收标准与架构。</div>
+        </div>
+        <span class="cb">查看文档 →</span>
+      </div>
+    </div>
+    <div class="desc">动效要点：<b>translateY(-12px) + rotate(-0.7°)</b> 浮起微倾 ＋ <b>backdrop-filter:blur(20px)</b> 毛玻璃 ＋ <b>background-position 动画</b> 的光泽扫过。三重叠加才有「飘起来」的灵动感。</div>
+  </section>
+
+  <!-- ===================== 方案 B ===================== -->
+  <section class="option" id="opt-b">
+    <div class="opt-head">
+      <span class="opt-tag">方案 B</span>
+      <h2>3D 透视跟随 · Tilt Card</h2>
+    </div>
+    <p class="opt-sub">鼠标在卡片上移动时，卡片基于鼠标位置<b>实时做 3D 透视倾斜</b>（rotateX / rotateY 跟随光标），同时悬浮、带<b>立体厚度边</b>与<b>跟随鼠标的霓虹辉光</b>。交互最强烈、最有「活」的感觉，科技感拉满。</p>
+    <div class="meta">
+      <span>气质：<b>科技 / 立体 / 未来感</b></span>
+      <span>配色：深空黑 + 青蓝霓虹辉光</span>
+      <span>复杂度：<b>中</b>（CSS + 少量 JS 跟踪鼠标）</span>
+      <span>性能：良（需限流 mousemove）</span>
+      <span class="star">推荐场景：产品特性展示、技术 Demo</span>
+    </div>
+
+    <div class="stage" id="stage-b">
+      <div class="card-base card-b" data-tilt>
+        <div class="glow"></div>
+        <div>
+          <span class="ic">🎛️</span>
+          <div class="ct">AI 追问长度优化</div>
+          <div class="cd">鼠标移动试试 —— 卡片会跟随你倾斜。</div>
+        </div>
+        <span class="cb">查看演示 →</span>
+      </div>
+      <div class="card-base card-b" data-tilt>
+        <div class="glow"></div>
+        <div>
+          <span class="ic">🧠</span>
+          <div class="ct">需求标准化拆解</div>
+          <div class="cd">立体的厚度边 + 跟随光标的青蓝辉光。</div>
+        </div>
+        <span class="cb">查看演示 →</span>
+      </div>
+      <div class="card-base card-b" data-tilt>
+        <div class="glow"></div>
+        <div>
+          <span class="ic">📘</span>
+          <div class="ct">产品文档</div>
+          <div class="cd">hover 时整体抬起 translateZ(20px)。</div>
+        </div>
+        <span class="cb">查看文档 →</span>
+      </div>
+    </div>
+    <div class="desc">动效要点：<b>perspective + rotateX/Y 跟随鼠标</b> ＋ <b>translateZ 抬起</b> ＋ <b>mask 合成的渐变描边</b> 做厚度 ＋ <b>radial-gradient 定位到鼠标坐标</b> 的辉光。需要一段轻量 JS（已内置于下方脚本）。</div>
+  </section>
+
+  <!-- ===================== 方案 C ===================== -->
+  <section class="option" id="opt-c">
+    <div class="opt-head">
+      <span class="opt-tag">方案 C</span>
+      <h2>弹性分层浮起 · Spring Parallax</h2>
+    </div>
+    <p class="opt-sub">弹性弹簧动效（spring 缓动），hover 时卡片整体上浮，同时<b>标题 / 按钮 / 图标分层错位浮起</b>（视差），元素带轻微缩放与颜色过渡。<b>温暖、活泼、有呼吸感</b>，最贴近现有浅色品牌基调，改动最小。</p>
+    <div class="meta">
+      <span>气质：<b>活泼 / 温暖 / 呼吸感</b></span>
+      <span>配色：浅紫渐变 + 紫色强调</span>
+      <span>复杂度：<b>低</b>（纯 CSS，无 JS）</span>
+      <span>性能：优</span>
+      <span class="star">推荐场景：与现有浅色 UI 无缝衔接</span>
+    </div>
+
+    <div class="stage" id="stage-c">
+      <div class="card-base card-c">
+        <div>
+          <span class="ic">🚀</span>
+          <div class="ct">AI 追问长度优化</div>
+          <div class="cd">图标浮得最高，标题次之，按钮最低 → 视差。</div>
+        </div>
+        <span class="cb">查看演示 →</span>
+      </div>
+      <div class="card-base card-c">
+        <div>
+          <span class="ic">🧩</span>
+          <div class="ct">需求标准化拆解</div>
+          <div class="cd">弹性 cubic-bezier(.34,1.56,.64,1) 回弹手感。</div>
+        </div>
+        <span class="cb">查看演示 →</span>
+      </div>
+      <div class="card-base card-c">
+        <div>
+          <span class="ic">📄</span>
+          <div class="ct">产品文档</div>
+          <div class="cd">hover 时按钮变色上浮，自然不突兀。</div>
+        </div>
+        <span class="cb">查看文档 →</span>
+      </div>
+    </div>
+    <div class="desc">动效要点：<b>cubic-bezier(.34,1.56,.64,1) 弹性回弹</b> ＋ <b>图标 / 标题 / 按钮各自 translateY 不同距离</b> 制造视差分层 ＋ <b>颜色过渡</b>。<b>无需任何 JS，可平滑迁移到现有 Tailwind。</b></div>
+  </section>
+
+  <!-- ===================== 对比表 ===================== -->
+  <section class="compare">
+    <h2>三个方案横向对比</h2>
+    <p class="opt-sub">同样满足「hover 浮动 + 灵动」，差异在气质、配色与实现成本。</p>
+    <table>
+      <thead>
+        <tr><th>维度</th><th>A · 极光玻璃</th><th>B · 3D 透视跟随</th><th>C · 弹性分层</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>视觉气质</td><td>通透梦幻</td><td>科技立体</td><td>温暖活泼</td></tr>
+        <tr><td>主色调</td><td>深蓝 + 极光渐变</td><td>深空黑 + 青蓝霓虹</td><td>浅紫 + 白底</td></tr>
+        <tr><td>hover 浮动</td><td>浮起 + 微倾 + 光泽扫过</td><td>跟随鼠标 3D 倾斜</td><td>上浮 + 分层视差</td></tr>
+        <tr><td>是否需要 JS</td><td><b>否</b></td><td>是（跟踪鼠标）</td><td><b>否</b></td></tr>
+        <tr><td>迁移成本</td><td>中（需深色背景）</td><td>高（需深色 + JS）</td><td><b>低</b>（贴合现有浅色）</td></tr>
+        <tr><td>品牌契合度</td><td>高</td><td>中</td><td><b>最高</b></td></tr>
+        <tr><td>移动端体验</td><td>良</td><td>一般（无 hover）</td><td><b>优</b></td></tr>
+        <tr><td>一句话</td><td>最「仙」</td><td>最「炫」</td><td>最「稳」</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <div class="footer">
+    <p>选定一个方向后，我会基于现有 Next.js 16 + Tailwind v4 + shadcn/ui 的结构落地到 <code>src/app/page.tsx</code> 与 <code>globals.css</code>。</p>
+    <div class="pillrow">
+      <a href="#opt-a">选 A · 极光玻璃</a>
+      <a href="#opt-b">选 B · 3D 透视</a>
+      <a href="#opt-c">选 C · 弹性分层</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- 方案 B 的鼠标跟随增强：纯 CSS :hover 已能浮起，这段 JS 让倾斜真正跟随光标 -->
+<script>
+  (function(){
+    var cards = document.querySelectorAll('[data-tilt]');
+    var isFinePointer = window.matchMedia('(pointer:fine)').matches;
+    if(!isFinePointer) return; // 触屏设备不启用，保持 hover 兜底
+    cards.forEach(function(card){
+      card.addEventListener('mousemove', function(e){
+        var r = card.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width;   // 0~1
+        var py = (e.clientY - r.top) / r.height;   // 0~1
+        var rx = (0.5 - py) * 16;                  // 上下 → rotateX
+        var ry = (px - 0.5) * 20;                  // 左右 → rotateY
+        card.style.transform =
+          'translateY(-10px) rotateX('+rx+'deg) rotateY('+ry+'deg) translateZ(20px)';
+        var glow = card.querySelector('.glow');
+        if(glow){
+          glow.style.background =
+            'radial-gradient(45% 45% at '+(px*100)+'% '+(py*100)+'%, rgba(34,211,238,.28), transparent 70%)';
+        }
+      });
+      card.addEventListener('mouseleave', function(){
+        card.style.transform = '';
+        var glow = card.querySelector('.glow');
+        if(glow) glow.style.background = '';
+      });
+    });
+  })();
+</script>
+</body>
+</html>

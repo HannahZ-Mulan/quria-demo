@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SPEC-001 · 语言切换下拉框 — High-Fidelity Mockups</title>
+<style>
+  /* ============================================================
+     项目设计令牌（取自 globals.css，oklch neutral 配色）
+     ============================================================ */
+  :root {
+    --background: #ffffff;
+    --foreground: #242424;
+    --card: #ffffff;
+    --popover: #ffffff;
+    --primary: #343434;          /* oklch(0.205 0 0) ≈ near-black */
+    --primary-foreground: #fafafa;
+    --secondary: #f5f5f5;
+    --muted: #f5f5f5;
+    --muted-foreground: #828282;
+    --accent: #f5f5f5;
+    --border: #ebebeb;
+    --ring: #b4b4b4;
+    --radius: 10px;              /* 0.625rem */
+    --radius-pill: 9999px;
+    --focus-ring: rgba(99, 102, 241, 0.35);
+
+    /* 强调色（用于 mockup 标注，不参与产品配色） */
+    --anno: #6366f1;
+    --anno-soft: #eef2ff;
+    --ok: #16a34a;
+    --ok-soft: #ecfdf5;
+    --grid: #f1f1f4;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    background: var(--grid);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  /* ============================================================
+     页面骨架
+     ============================================================ */
+  .page { max-width: 1280px; margin: 0 auto; padding: 48px 32px 96px; }
+
+  .doc-head { margin-bottom: 40px; }
+  .doc-head .eyebrow {
+    display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--anno); background: var(--anno-soft);
+    padding: 4px 10px; border-radius: var(--radius-pill); margin-bottom: 14px;
+  }
+  .doc-head h1 { font-size: 34px; margin: 0 0 10px; letter-spacing: -0.02em; }
+  .doc-head p { color: var(--muted-foreground); max-width: 760px; margin: 0; font-size: 15px; }
+  .doc-meta {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px;
+  }
+  .chip {
+    font-size: 12px; padding: 4px 10px; border-radius: var(--radius-pill);
+    border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground);
+  }
+  .chip b { color: var(--foreground); }
+
+  .section { margin-top: 56px; }
+  .section > h2 {
+    font-size: 20px; margin: 0 0 6px; display: flex; align-items: center; gap: 10px;
+  }
+  .section > h2 .num {
+    width: 26px; height: 26px; border-radius: 8px; background: var(--primary);
+    color: var(--primary-foreground); font-size: 13px; display: inline-flex;
+    align-items: center; justify-content: center; font-weight: 700;
+  }
+  .section > p.lead { color: var(--muted-foreground); margin: 0 0 22px; font-size: 14px; max-width: 820px; }
+
+  /* mockup 画框 */
+  .stage-row { display: grid; gap: 28px; }
+  .stage-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .stage-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 980px) { .stage-row.cols-3, .stage-row.cols-2 { grid-template-columns: 1fr; } }
+
+  .frame {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 12px 30px -18px rgba(0,0,0,0.18);
+    display: flex; flex-direction: column;
+  }
+  .frame-bar {
+    display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+    border-bottom: 1px solid var(--border); background: #fafafa;
+  }
+  .frame-bar .dots { display: flex; gap: 6px; }
+  .frame-bar .dots i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .frame-bar .dots i:nth-child(1) { background: #ff5f57; }
+  .frame-bar .dots i:nth-child(2) { background: #febc2e; }
+  .frame-bar .dots i:nth-child(3) { background: #28c840; }
+  .frame-bar .url {
+    flex: 1; text-align: center; font-size: 12px; color: var(--muted-foreground);
+    background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 3px 10px;
+    margin: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .frame-body { position: relative; }
+  .frame-cap {
+    padding: 12px 16px; border-top: 1px solid var(--border); background: #fafafa;
+    font-size: 13px; color: var(--muted-foreground);
+  }
+  .frame-cap b { color: var(--foreground); }
+
+  /* 浏览器视口（应用 UI 画布） */
+  .viewport { position: relative; background: #f7f7f8; }
+  .vp-desktop { min-height: 360px; padding: 24px; }
+  .vp-mobile {
+    width: 300px; min-height: 520px; margin: 0 auto; padding: 18px;
+    background: #f7f7f8; border-radius: 0;
+  }
+  .vp-rtl { direction: rtl; }
+
+  /* 占位应用内容 */
+  .app-title { font-size: 22px; font-weight: 700; margin: 8px 0 4px; }
+  .app-sub { font-size: 13px; color: var(--muted-foreground); margin: 0 0 18px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .pcard {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+  }
+  .pcard .t { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .pcard .d { font-size: 11px; color: var(--muted-foreground); line-height: 1.45; }
+  .pcard .b {
+    margin-top: 12px; font-size: 11px; text-align: center; padding: 6px; border-radius: 8px;
+    background: var(--primary); color: var(--primary-foreground);
+  }
+  .m-app-title { font-size: 18px; font-weight: 700; margin: 6px 0 2px; }
+  .m-app-sub { font-size: 12px; color: var(--muted-foreground); }
+  .m-block { height: 56px; border-radius: 10px; background: #fff; border: 1px solid var(--border); margin-top: 12px; }
+
+  /* ============================================================
+     LanguageSwitcher 组件（精确还原 src/components/LanguageSwitcher.tsx）
+     ============================================================ */
+  .ls { position: relative; }
+  .ls-trigger {
+    display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px;
+    border-radius: var(--radius-pill); border: 1px solid var(--border); background: #fff;
+    color: var(--foreground); font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: background .15s, box-shadow .15s; line-height: 1;
+  }
+  .ls-trigger:hover { background: var(--muted); }
+  .ls-trigger[aria-expanded="true"] { background: var(--muted); box-shadow: 0 0 0 3px var(--focus-ring); }
+  .ls-trigger .lbl { white-space: nowrap; }
+  .ls-trigger svg { width: 16px; height: 16px; }
+  .ls-trigger .chev { transition: transform .18s; }
+  .ls-trigger[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+  .ls-menu {
+    position: absolute; top: calc(100% + 8px); right: 0; width: 184px;
+    background: var(--popover); border: 1px solid var(--border); border-radius: 12px;
+    padding: 5px; box-shadow: 0 8px 30px -8px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.05);
+    z-index: 50; list-style: none; margin: 0;
+  }
+  .ls-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    width: 100%; padding: 8px 10px; border: none; background: transparent; cursor: pointer;
+    border-radius: 8px; font-size: 13px; text-align: left; color: var(--foreground);
+  }
+  .ls-item:hover, .ls-item.focused { background: var(--muted); }
+  .ls-item[aria-checked="true"] { background: var(--muted); font-weight: 600; }
+  .ls-item .check { width: 15px; height: 15px; color: var(--primary); visibility: hidden; }
+  .ls-item[aria-checked="true"] .check { visibility: visible; }
+  /* RTL: 菜单锚到左边 */
+  .vp-rtl .ls-menu { right: auto; left: 0; }
+  .vp-rtl .ls-item { text-align: right; }
+
+  /* 顶部固定定位包装（首页右上角，absolute 随滚动） */
+  .ls-anchor { position: absolute; top: 16px; right: 16px; z-index: 50; }
+  .vp-rtl .ls-anchor { right: auto; left: 16px; }
+  .vp-mobile .ls-anchor { top: 12px; right: 12px; }
+
+  /* ============================================================
+     标注（annotation callouts）
+     ============================================================ */
+  .anno-list { margin: 0; padding: 0; list-style: none; }
+  .anno-list li {
+    display: flex; gap: 10px; padding: 7px 0; font-size: 13px; color: var(--muted-foreground);
+    border-bottom: 1px dashed var(--border);
+  }
+  .anno-list li:last-child { border-bottom: none; }
+  .anno-list .pin {
+    flex: none; width: 20px; height: 20px; border-radius: 6px; background: var(--anno-soft);
+    color: var(--anno); font-size: 11px; font-weight: 700; display: inline-flex;
+    align-items: center; justify-content: center;
+  }
+  .anno-list b { color: var(--foreground); }
+
+  /* 状态徽标 */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600;
+    padding: 3px 9px; border-radius: var(--radius-pill);
+  }
+  .badge.ok { background: var(--ok-soft); color: var(--ok); }
+  .badge.draft { background: #fff7ed; color: #c2410c; }
+
+  /* 语言清单表 */
+  .lang-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .lang-table th, .lang-table td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  .lang-table th { background: #fafafa; color: var(--muted-foreground); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .lang-table tr.removed { opacity: .5; text-decoration: line-through; }
+  .lang-table tr.added { background: var(--ok-soft); }
+  .lang-table code { background: #f3f4f6; padding: 1px 6px; border-radius: 5px; font-size: 12px; }
+
+  .legend { display: flex; gap: 18px; font-size: 12px; color: var(--muted-foreground); margin-bottom: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  footer { margin-top: 72px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted-foreground); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ===================== 文档头 ===================== -->
+  <header class="doc-head">
+    <span class="eyebrow">High-Fidelity Mockups · SPEC-001</span>
+    <h1>语言切换下拉框（Language Switcher Dropdown）</h1>
+    <p>本页为 <code>SPEC-001-language-switcher-dropdown.md</code> 的可视化高保真原型，展示组件在各页面、各交互状态、桌面/移动端、以及 RTL（希伯来语）场景下的最终呈现。视觉严格遵循项目 shadcn/ui neutral 令牌与 <code>LanguageSwitcher.tsx</code> 的实现。</p>
+    <div class="doc-meta">
+      <span class="chip">语言数：<b>9</b></span>
+      <span class="chip">触发器：<b>图标 + 语言名</b></span>
+      <span class="chip">定位：<b>右上角 absolute（随滚动）</b></span>
+      <span class="chip">组件：<b><code>LanguageSwitcher.tsx</code></b></span>
+      <span class="chip">来源：<b>lucide-react 图标 + Button 基础组件</b></span>
+    </div>
+  </header>
+
+  <!-- ===================== 1. 组件状态 ===================== -->
+  <section class="section">
+    <h2><span class="num">1</span>组件交互状态</h2>
+    <p class="lead">同一个组件的四种关键状态。触发器为胶囊形 outline 按钮，含地球图标 + 当前语言名 + 旋转箭头；展开菜单右对齐、9 项可滚动，当前语言以浅灰底 + 对勾标记。</p>
+
+    <div class="stage-row cols-3">
+
+      <!-- 1a 折叠（默认） -->
+      <div class="frame">
+        <div class="frame-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">状态 A · Collapsed（默认）</div></div>
+        <div class="frame-body">
+          <div class="viewport vp-desktop" style="min-height:150px;display:flex;align-items:center;justify-content:center;">
+            <div class="ls">
+              <button class="ls-trigger" aria-haspopup="menu" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+                <span class="lbl">简体中文</span>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="frame-cap"><b>折叠态。</b>仅显示地球图标 + 当前语言 + 下箭头。点击切换为展开。</div>
+      </div>
+
+      <!-- 1b 展开 -->
+      <div class="frame">
+        <div class="frame-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">状态 B · Expanded（展开）</div></div>
+        <div class="frame-body">
+          <div class="viewport vp-desktop" style="min-height:380px;display:flex;align-items:flex-start;justify-content:center;padding-top:30px;">
+            <div class="ls" style="margin-top:0;">
+              <button class="ls-trigger" aria-haspopup="menu" aria-expanded="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+                <span class="lbl">简体中文</span>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <ul class="ls-menu" role="menu">
+                <li><button class="ls-item" role="menuitemradio" aria-checked="true">简体中文<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">繁體中文<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">English<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">日本語<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">Italiano<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">Français<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">עברית<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">Português<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">Español<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="frame-cap"><b>展开态。</b>9 种语言，当前项 <code>简体中文</code> 高亮 + 对勾；菜单右对齐不溢出视口。</div>
+      </div>
+
+      <!-- 1c hover / focus -->
+      <div class="frame">
+        <div class="frame-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">状态 C · Hover / Focus</div></div>
+        <div class="frame-body">
+          <div class="viewport vp-desktop" style="min-height:380px;display:flex;align-items:flex-start;justify-content:center;padding-top:30px;">
+            <div class="ls">
+              <button class="ls-trigger" aria-haspopup="menu" aria-expanded="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+                <span class="lbl">English</span>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <ul class="ls-menu" role="menu">
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">简体中文<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">繁體中文<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="true">English<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">日本語<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item focused" role="menuitemradio" aria-checked="false">Italiano<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">Français<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">עברית<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">Português<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                <li><button class="ls-item" role="menuitemradio" aria-checked="false">Español<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="frame-cap"><b>悬停/聚焦态。</b>触发器显示焦点环；菜单项 <code>Italiano</code> 处于 hover/focus 高亮，对勾仅出现在当前已选 <code>English</code>。</div>
+      </div>
+    </div>
+
+    <div style="margin-top:22px;">
+      <ul class="anno-list" style="max-width:820px;">
+        <li><span class="pin">1</span><span><b>触发器结构：</b><code>&lt;Languages icon/&gt;</code> + 当前语言全称 + <code>&lt;ChevronDown/&gt;</code>，胶囊形 <code>outline</code> 按钮（高 34px）。</span></li>
+        <li><span class="pin">2</span><span><b>当前语言标记：</b>浅灰底 <code>bg-muted</code> + 加粗 + 右侧 <code>Check</code> 对勾，<code>aria-checked="true"</code>。</span></li>
+        <li><span class="pin">3</span><span><b>关闭方式：</b>点击外部、按 <kbd>Esc</kbd>、或选中任一项（含重复选中当前项）。</span></li>
+        <li><span class="pin">4</span><span><b>无障碍：</b>触发器 <code>aria-haspopup="menu"</code> + <code>aria-expanded</code>；菜单项 <code>role="menuitemradio"</code>。</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== 2. 各页面集成 ===================== -->
+  <section class="section">
+    <h2><span class="num">2</span>三页集成上下文</h2>
+    <p class="lead">同一 <code>&lt;LanguageSwitcher /&gt;</code> 以 <code>absolute top-4 right-4 z-50</code> 锚定在每个页面右上角，替换原先居中的按钮排。三个页面位置与样式完全一致。</p>
+
+    <div class="stage-row cols-3">
+
+      <!-- 2a 首页 -->
+      <div class="frame">
+        <div class="frame-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">localhost:3000 /</div></div>
+        <div class="frame-body">
+          <div class="viewport vp-desktop relative" style="position:relative;">
+            <div class="ls-anchor">
+              <div class="ls">
+                <button class="ls-trigger" aria-haspopup="menu" aria-expanded="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+                  <span class="lbl">简体中文</span>
+                  <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+              </div>
+            </div>
+            <div style="text-align:center;padding-top:30px;">
+              <div class="app-title">Quria 产品优化方案</div>
+              <p class="app-sub">为 AI 访谈系统设计的两个核心优化项目</p>
+              <div class="cards" style="max-width:520px;margin:18px auto 0;">
+                <div class="pcard"><div class="t">项目 1</div><div class="d">AI 追问长度动态优化</div><div class="b">查看演示</div></div>
+                <div class="pcard"><div class="t">项目 3</div><div class="d">客户需求标准化拆解</div><div class="b">查看演示</div></div>
+                <div class="pcard"><div class="t">文档</div><div class="d">PRD + SRS</div><div class="b">查看文档</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-cap"><b>首页 /</b>　右上角固定，原居中按钮排已移除。</div>
+      </div>
+
+      <!-- 2b project1 -->
+      <div class="frame">
+        <div class="frame-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">localhost:3000/project1</div></div>
+        <div class="frame-body">
+          <div class="viewport vp-desktop" style="position:relative;">
+            <div class="ls-anchor">
+              <div class="ls">
+                <button class="ls-trigger" aria-haspopup="menu" aria-expanded="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+                  <span class="lbl">简体中文</span>
+                  <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+              </div>
+            </div>
+            <div style="max-width:440px;margin:0 auto;padding-top:24px;">
+              <div class="app-title" style="font-size:18px;">AI 追问长度动态优化</div>
+              <p class="app-sub">根据回答长度动态调整追问字数上限</p>
+              <div class="pcard" style="margin-top:12px;">
+                <div class="t">受访者回答</div>
+                <div style="height:54px;background:#f5f5f5;border-radius:8px;margin-top:6px;"></div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:10px;">
+                <div class="b" style="flex:1;text-align:center;font-size:11px;padding:7px;border-radius:8px;background:var(--primary);color:#fff;">生成追问</div>
+                <div class="b" style="flex:1;text-align:center;font-size:11px;padding:7px;border-radius:8px;background:#fff;border:1px solid var(--border);color:var(--foreground);">清空</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-cap"><b>/project1</b>　原单字符按钮排（简/繁/EN/粤/日）已替换。</div>
+      </div>
+
+      <!-- 2c project3 -->
+      <div class="frame">
+        <div class="frame-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">localhost:3000/project3</div></div>
+        <div class="frame-body">
+          <div class="viewport vp-desktop" style="position:relative;">
+            <div class="ls-anchor">
+              <div class="ls">
+                <button class="ls-trigger" aria-haspopup="menu" aria-expanded="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+                  <span class="lbl">简体中文</span>
+                  <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <ul class="ls-menu" role="menu">
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="true">简体中文<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">繁體中文<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">English<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">日本語<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">Italiano<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">Français<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">עברית<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">Português<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">Español<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                </ul>
+              </div>
+            </div>
+            <div style="max-width:440px;margin:0 auto;padding-top:24px;">
+              <div class="app-title" style="font-size:18px;">客户需求标准化拆解</div>
+              <p class="app-sub">需求输入 → 结构化拆解 → 技术方案输出</p>
+              <div class="pcard" style="margin-top:12px;">
+                <div class="t">原始需求</div>
+                <div style="height:48px;background:#f5f5f5;border-radius:8px;margin-top:6px;"></div>
+              </div>
+              <div style="font-size:11px;text-align:center;padding:7px;border-radius:8px;background:var(--primary);color:#fff;margin-top:10px;">智能拆解</div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-cap"><b>/project3</b>　展开菜单覆盖在内容上方，<code>z-50</code> 不被遮挡。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 3. 移动端 & RTL ===================== -->
+  <section class="section">
+    <h2><span class="num">3</span>移动端 与 RTL（希伯来语）</h2>
+    <p class="lead">移动端下触发器等比缩小并保持右上角；当选中希伯来语（<code>he</code>）时整页 <code>direction: rtl</code>，下拉菜单自动锚定到左上角、文字右对齐。</p>
+
+    <div class="stage-row cols-2">
+
+      <!-- 3a mobile -->
+      <div class="frame">
+        <div class="frame-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">移动端 · 375px</div></div>
+        <div class="frame-body">
+          <div class="viewport vp-mobile" style="position:relative;">
+            <div class="ls-anchor">
+              <div class="ls">
+                <button class="ls-trigger" aria-haspopup="menu" aria-expanded="true" style="height:30px;font-size:12px;padding:0 10px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+                  <span class="lbl">English</span>
+                  <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <ul class="ls-menu" role="menu" style="width:160px;">
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false" style="padding:7px 9px;">简体中文<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false" style="padding:7px 9px;">繁體中文<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="true" style="padding:7px 9px;">English<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false" style="padding:7px 9px;">日本語<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false" style="padding:7px 9px;">Italiano<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false" style="padding:7px 9px;">Français<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false" style="padding:7px 9px;">עברית<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false" style="padding:7px 9px;">Português<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false" style="padding:7px 9px;">Español<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                </ul>
+              </div>
+            </div>
+            <div style="padding-top:54px;">
+              <div class="m-app-title">Quria</div>
+              <div class="m-app-sub">AI 访谈优化演示</div>
+              <div class="m-block"></div>
+              <div class="m-block"></div>
+              <div class="m-block" style="height:80px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-cap"><b>移动端。</b>触发器缩小，菜单宽度收窄到 160px，9 项垂直排布可滚动，不溢出窄屏。</div>
+      </div>
+
+      <!-- 3b RTL hebrew -->
+      <div class="frame">
+        <div class="frame-bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">希伯来语 · RTL · עברית</div></div>
+        <div class="frame-body">
+          <div class="viewport vp-desktop vp-rtl" style="position:relative;min-height:380px;">
+            <div class="ls-anchor">
+              <div class="ls">
+                <button class="ls-trigger" aria-haspopup="menu" aria-expanded="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+                  <span class="lbl">עברית</span>
+                  <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <ul class="ls-menu" role="menu">
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">简体中文<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">繁體中文<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">English<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">日本語<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">Italiano<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">Français<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="true">עברית<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">Português<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                  <li><button class="ls-item" role="menuitemradio" aria-checked="false">Español<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button></li>
+                </ul>
+              </div>
+            </div>
+            <div style="padding-top:60px;text-align:right;">
+              <div class="app-title" style="font-size:18px;">אופטימיזציה של Quria</div>
+              <p class="app-sub">מערכת ראיונות מבוססת AI</p>
+              <div class="cards" style="grid-template-columns:1fr;max-width:300px;margin-right:0;">
+                <div class="pcard"><div class="t">פרויקט 1</div><div class="d">אופטימיזציה של אורך שאלות</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="frame-cap"><b>RTL 希伯来语。</b>整页 <code>dir="rtl"</code>，组件锚定左上角，菜单左对齐、文字右对齐。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 4. 语言清单 ===================== -->
+  <section class="section">
+    <h2><span class="num">4</span>语言清单（9 种）</h2>
+    <p class="lead">即 <code>src/i18n/index.tsx</code> 导出的 <code>LANGUAGES</code> 常量。粤语（yue）已移除，新增 5 种欧洲 + 希伯来语。</p>
+
+    <div class="legend">
+      <span><i style="background:var(--ok-soft);border:1px solid #bbf7d0;"></i>新增</span>
+      <span><i style="background:#f5f5f5;border:1px solid #e5e5e5;"></i>保留</span>
+      <span><i style="background:#fff;border:1px solid #fecaca;"></i>已移除</span>
+    </div>
+
+    <div class="frame">
+      <table class="lang-table">
+        <thead><tr><th>#</th><th>code</th><th>label（原生）</th><th>书写方向</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>zh-CN</code></td><td>简体中文</td><td>LTR</td><td><span class="badge ok">保留</span></td></tr>
+          <tr><td>2</td><td><code>zh-TW</code></td><td>繁體中文</td><td>LTR</td><td><span class="badge ok">保留</span></td></tr>
+          <tr><td>3</td><td><code>en</code></td><td>English</td><td>LTR</td><td><span class="badge ok">保留</span></td></tr>
+          <tr><td>4</td><td><code>ja</code></td><td>日本語</td><td>LTR</td><td><span class="badge ok">保留</span></td></tr>
+          <tr class="added"><td>5</td><td><code>it</code></td><td>Italiano</td><td>LTR</td><td><span class="badge ok">新增</span></td></tr>
+          <tr class="added"><td>6</td><td><code>fr</code></td><td>Français</td><td>LTR</td><td><span class="badge ok">新增</span></td></tr>
+          <tr class="added"><td>7</td><td><code>he</code></td><td>עברית</td><td>RTL</td><td><span class="badge ok">新增</span></td></tr>
+          <tr class="added"><td>8</td><td><code>pt</code></td><td>Português</td><td>LTR</td><td><span class="badge ok">新增</span></td></tr>
+          <tr class="added"><td>9</td><td><code>es</code></td><td>Español</td><td>LTR</td><td><span class="badge ok">新增</span></td></tr>
+          <tr class="removed"><td>—</td><td><code>yue</code></td><td>粵語</td><td>LTR</td><td><span class="badge draft">已移除</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    SPEC-001 · Language Switcher Dropdown — High-Fidelity Mockups · 与 <code>src/components/LanguageSwitcher.tsx</code> 实现及项目 shadcn neutral 设计令牌对齐 · 9 种语言（含 RTL 希伯来语）。
+  </footer>
+</div>
+</body>
+</html>
