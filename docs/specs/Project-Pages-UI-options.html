@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quria · Project 页面 UI 优化 · 3 方案 Spec（配套方案 B）</title>
+<style>
+  :root{
+    --bg:#07091a;
+    --panel:rgba(255,255,255,.04);
+    --panel-2:rgba(255,255,255,.06);
+    --line:rgba(255,255,255,.10);
+    --text:#e6e8f0;
+    --muted:#9aa0b4;
+    --cyan:#22d3ee;
+    --violet:#a78bfa;
+    --pink:#f472b6;
+    --accent:#7c5cff;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1100px;margin:0 auto;padding:64px 28px 96px}
+
+  /* 深空背景（复用首页方案 B） */
+  body::before{content:"";position:fixed;inset:0;z-index:-1;
+    background:
+      radial-gradient(50vw 50vw at 15% 10%,rgba(124,92,255,.20),transparent 60%),
+      radial-gradient(45vw 45vw at 90% 80%,rgba(34,211,238,.16),transparent 60%),
+      var(--bg)}
+
+  /* ---------- HERO ---------- */
+  .hero{text-align:center;margin-bottom:48px}
+  .eyebrow{display:inline-block;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.25);padding:6px 14px;border-radius:999px;margin-bottom:16px}
+  .hero h1{font-size:36px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+  .grad{background:linear-gradient(110deg,#a78bfa,#22d3ee 55%,#f472b6);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{margin-top:12px;color:var(--muted);font-size:15px;max-width:640px;margin-left:auto;margin-right:auto}
+  .hint{margin-top:18px;font-size:13px;color:var(--muted);background:rgba(255,255,255,.04);border:1px dashed var(--line);border-radius:12px;padding:10px 16px;display:inline-block}
+  .hint b{color:#fff}
+
+  /* ---------- 通用 ---------- */
+  .opt{margin-top:64px;scroll-margin-top:20px}
+  .opt-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .opt-tag{font-size:12px;font-weight:700;letter-spacing:.06em;padding:5px 12px;border-radius:8px;color:#fff}
+  .opt-head h2{font-size:25px;font-weight:700;letter-spacing:-.01em}
+  .opt-sub{color:var(--muted);font-size:14.5px;margin-bottom:18px;max-width:780px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px;font-size:12.5px}
+  .meta span{background:rgba(255,255,255,.05);border:1px solid var(--line);padding:6px 12px;border-radius:999px;color:var(--muted)}
+  .meta span b{color:#fff;font-weight:600}
+  .meta .star{color:#ffd166}
+
+  /* 模拟手机/桌面框架 */
+  .demo-frame{border:1px solid var(--line);border-radius:20px;overflow:hidden;background:rgba(7,9,26,.6);backdrop-filter:blur(6px);margin-bottom:14px}
+  .demo-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.03)}
+  .demo-bar i{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .demo-body{padding:24px}
+
+  .desc{font-size:13.5px;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-top:10px}
+  .desc b{color:#fff}
+
+  /* ---------- 公共控件（深空风） ---------- */
+  .glass{background:var(--panel);border:1px solid var(--line);border-radius:16px}
+  .label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .ib{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;color:#cfd3e3;padding:14px;font-size:13px;transition:.3s}
+  .ib:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+  .btn{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.05);color:#cfd3e3;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;transition:.3s}
+  .btn-pri{background:linear-gradient(120deg,#7c5cff,#22d3ee);color:#06121a;border:none}
+  .btn:hover{transform:translateY(-2px)}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--muted)}
+  .chip.on{background:rgba(34,211,238,.15);border-color:rgba(34,211,238,.4);color:var(--cyan)}
+
+  /* ============================================================
+     方案 1 · 深空控制台 Cockpit
+     ============================================================ */
+  .ck-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  @media(max-width:720px){.ck-row{grid-template-columns:1fr}}
+  .ck-pane{padding:18px}
+  .ck-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .ck-stat{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;transition:.35s}
+  .ck-stat .n{font-size:22px;font-weight:800;background:linear-gradient(120deg,#22d3ee,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .ck-stat .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+  .ck-btn-glow{position:relative;overflow:hidden;width:100%;margin-top:12px;padding:14px;border:none;border-radius:12px;font-weight:700;color:#06121a;background:linear-gradient(120deg,#7c5cff,#22d3ee);cursor:pointer;transition:.35s}
+  .ck-btn-glow::after{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.5),transparent);transition:left .6s}
+  .ck-btn-glow:hover{transform:translateY(-3px);box-shadow:0 14px 30px -10px rgba(124,92,255,.6)}
+  .ck-btn-glow:hover::after{left:120%}
+  .ck-result{margin-top:14px;padding:16px;border:1px solid rgba(34,211,238,.3);background:rgba(34,211,238,.06);border-radius:14px;font-size:14px;color:#cdeaf2;animation:popIn .5s ease}
+  @keyframes popIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .seg{display:flex;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:12px}
+  .seg button{flex:1;border:none;background:transparent;color:var(--muted);padding:9px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.3s}
+  .seg button.on{background:rgba(124,92,255,.25);color:#fff;box-shadow:0 0 0 1px rgba(124,92,255,.4)}
+  .ck-hist{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+  .ck-hist div{font-size:12px;color:var(--muted);padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;border-left:2px solid var(--cyan);transition:.3s}
+  .ck-hist div:hover{transform:translateX(4px);color:#fff;border-left-color:var(--violet)}
+
+  /* ============================================================
+     方案 2 · 智能对话流 Conversational Flow
+     ============================================================ */
+  .cv-stepper{display:flex;gap:0;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+  .cv-step{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+  .cv-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:1px solid var(--line);background:rgba(255,255,255,.04);transition:.4s}
+  .cv-dot.on{background:linear-gradient(120deg,#7c5cff,#22d3ee);color:#06121a;border-color:transparent;box-shadow:0 0 0 4px rgba(124,92,255,.2)}
+  .cv-dot.done{background:rgba(34,211,238,.2);color:var(--cyan);border-color:rgba(34,211,238,.4)}
+  .cv-line{flex:1;min-width:30px;height:2px;background:var(--line);margin:0 6px;position:relative;overflow:hidden}
+  .cv-line.done::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#7c5cff,#22d3ee)}
+  .cv-bubble{max-width:75%;padding:12px 16px;border-radius:16px;font-size:13.5px;animation:slideUp .4s ease}
+  @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .cv-bot{background:rgba(255,255,255,.06);border:1px solid var(--line);border-bottom-left-radius:4px;color:#cfd3e3;align-self:flex-start}
+  .cv-you{background:linear-gradient(120deg,#7c5cff,#22d3ee);color:#06121a;border-bottom-right-radius:4px;align-self:flex-end;font-weight:500}
+  .cv-chat{display:flex;flex-direction:column;gap:10px;padding:18px;min-height:140px}
+  .cv-thinking{display:inline-flex;gap:4px;align-items:center;padding:12px 16px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:16px;border-bottom-left-radius:4px;align-self:flex-start}
+  .cv-thinking i{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:bounce 1.2s infinite}
+  .cv-thinking i:nth-child(2){animation-delay:.2s}
+  .cv-thinking i:nth-child(3){animation-delay:.4s}
+  @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+  .cv-quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .cv-quick .chip{cursor:pointer;transition:.3s}
+  .cv-quick .chip:hover{transform:translateY(-2px);background:rgba(124,92,255,.2);border-color:rgba(124,92,255,.5);color:#fff}
+
+  /* ============================================================
+     方案 3 · 卡片工作台 Workspace
+     ============================================================ */
+  .ws-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  @media(max-width:760px){.ws-grid{grid-template-columns:1fr}}
+  .ws-card{position:relative;padding:20px;border-radius:18px;background:var(--panel);border:1px solid var(--line);min-height:170px;transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s,border-color .4s;overflow:hidden}
+  .ws-card::before{content:"";position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(130deg,#22d3ee,#7c5cff,#ec4899);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:.4s}
+  .ws-card:hover{transform:translateY(-8px) rotate(-.4deg);box-shadow:0 26px 50px -22px rgba(0,0,0,.7);border-color:transparent}
+  .ws-card:hover::before{opacity:1}
+  .ws-ic{font-size:26px;margin-bottom:10px}
+  .ws-t{font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+  .ws-d{font-size:12px;color:var(--muted);margin-bottom:12px}
+  .ws-foot{display:flex;align-items:center;justify-content:space-between}
+  .ws-badge{font-size:10.5px;padding:3px 9px;border-radius:999px}
+  .b-cyan{background:rgba(34,211,238,.15);color:var(--cyan)}
+  .b-violet{background:rgba(167,139,250,.15);color:var(--violet)}
+  .b-pink{background:rgba(244,114,182,.15);color:var(--pink)}
+  .ws-flow{display:flex;align-items:center;justify-content:space-between;margin-top:24px;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}
+  .ws-node{text-align:center;font-size:11.5px;color:var(--muted)}
+  .ws-node .ring{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-weight:800;font-size:15px;color:#06121a;background:linear-gradient(120deg,#7c5cff,#22d3ee);transition:.4s}
+  .ws-node:hover .ring{transform:scale(1.12) rotate(6deg)}
+  .ws-arr{flex:1;height:2px;background:linear-gradient(90deg,rgba(124,92,255,.4),rgba(34,211,238,.4));margin:0 8px;position:relative}
+  .ws-arr::after{content:"→";position:absolute;right:-4px;top:-9px;color:var(--cyan)}
+
+  /* ---------- 对比表 ---------- */
+  .compare{margin-top:80px}
+  .compare h2{font-size:22px;margin-bottom:6px}
+  .compare .opt-sub{margin-bottom:18px}
+  table{width:100%;border-collapse:collapse;font-size:13px;background:rgba(255,255,255,.03);border-radius:16px;overflow:hidden}
+  th,td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:rgba(255,255,255,.04);color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.08em}
+  td b{color:#fff}
+  tr:last-child td{border-bottom:none}
+  td:first-child{color:var(--cyan);font-weight:600}
+
+  .footer{text-align:center;margin-top:56px;color:var(--muted);font-size:12.5px}
+  .pillrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  .pillrow a{font-size:13px;color:#06121a;text-decoration:none;font-weight:700;background:linear-gradient(120deg,#7c5cff,#22d3ee);padding:11px 22px;border-radius:999px;transition:.3s}
+  .pillrow a:hover{transform:translateY(-3px);box-shadow:0 12px 24px -8px rgba(124,92,255,.6)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero">
+    <span class="eyebrow">Project Pages · UI Spec · 配套方案 B</span>
+    <h1>让 Project 1 & 3 页面<br><span class="grad">交互、便捷、智能、高级</span></h1>
+    <p>首页已是方案 B 深空科技风，但点进 project1（AI 追问）和 project3（需求拆解）后回到灰白平淡界面，体验断层。下面 3 个方向<b>都沿用深空 + 霓虹 + 浮动</b>，区别在「交互语言」：控制台式 / 对话流式 / 卡片工作台式。</p>
+    <div class="hint">💡 每个方案下方都有 <b>真实可交互的页面演示</b>——点按钮、切 Tab、hover 卡片都能看到效果。</div>
+  </section>
+
+  <!-- ===================== 方案 1 ===================== -->
+  <section class="opt" id="opt-1">
+    <div class="opt-head">
+      <span class="opt-tag" style="background:#7c5cff">方案 1</span>
+      <h2>深空控制台 · Cockpit</h2>
+    </div>
+    <p class="opt-sub">把页面变成一块<b>深色控制台仪表盘</b>：左侧输入与参数区，右侧实时结果面板。结果用<b>大号数字仪表</b>呈现（字数 / 压缩率 / 策略），生成时按钮流光、结果弹出动画。最贴近方案 B 的「科技感」，适合<b>数据型工具</b>（project1 的字数优化）。</p>
+    <div class="meta">
+      <span>交互语言：<b>仪表盘 / 实时数据</b></span>
+      <span>核心动效：按钮流光 + 数字仪表 + 结果弹出</span>
+      <span>改造量：<b>中</b>（重排布局 + 新增仪表组件）</span>
+      <span class="star">最配：project1 字数优化</span>
+    </div>
+
+    <div class="demo-frame">
+      <div class="demo-bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span style="font-size:12px;color:var(--muted);margin-left:8px">/project1 — AI 追问控制台</span></div>
+      <div class="demo-body">
+        <div class="ck-row">
+          <!-- 左：输入 -->
+          <div class="glass ck-pane">
+            <div class="label">① 回答输入</div>
+            <div class="ib" contenteditable style="min-height:70px">用户希望在移动端快速完成问卷…</div>
+            <div class="ck-stats" style="grid-template-columns:1fr 1fr">
+              <div class="ck-stat"><div class="n" style="font-size:16px">38</div><div class="k">已输入字数</div></div>
+              <div class="ck-stat"><div class="n" style="font-size:16px">30</div><div class="k">建议字数上限</div></div>
+            </div>
+            <div class="label" style="margin-top:14px">② 模式</div>
+            <div class="seg"><button>精简</button><button class="on">标准</button><button>深度</button></div>
+            <div class="label">③ 设备</div>
+            <div class="seg"><button class="on">PC</button><button>移动端</button></div>
+            <button class="ck-btn-glow">⚡ 生成追问</button>
+          </div>
+          <!-- 右：结果 -->
+          <div class="glass ck-pane">
+            <div class="label">生成结果</div>
+            <div class="ck-result">在这个场景下，您最希望问卷解决的核心痛点是什么？</div>
+            <div class="ck-stats">
+              <div class="ck-stat"><div class="n">28</div><div class="k">最终字数</div></div>
+              <div class="ck-stat"><div class="n">45</div><div class="k">原始字数</div></div>
+              <div class="ck-stat"><div class="n" style="background:linear-gradient(120deg,#f472b6,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent">38%</div><div class="k">压缩率</div></div>
+            </div>
+            <div class="ck-hist">
+              <div>上次：您希望提升哪些维度的体验？ · 22字</div>
+              <div>上次：预算范围大概是多少？ · 18字</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="desc">要点：左输入右结果的<b>双栏仪表盘</b>；<b>按钮流光扫过</b>（hover/shimmer）暗示可点；<b>大号渐变数字仪表</b>取代灰底小字；结果区 <b>popIn 动画</b> + 历史项 hover <b>左移高亮</b>。整体像在操作一台精密仪器 → <b>高级 + 智能感</b>。</div>
+  </section>
+
+  <!-- ===================== 方案 2 ===================== -->
+  <section class="opt" id="opt-2">
+    <div class="opt-head">
+      <span class="opt-tag" style="background:#22d3ee">方案 2</span>
+      <h2>智能对话流 · Conversational Flow</h2>
+    </div>
+    <p class="opt-sub">把整个流程变成<b>一段引导式对话</b>：顶部步骤指示器，主体是对话气泡，AI 主动提问 / 给建议，下方<b>快捷操作 chip</b>（一键精简 / 换模式 / 生成 TRD）。「打字中」三点动画 + 气泡逐条滑入。最体现<b>「智能感」</b>，适合 project3 这类<b>多步骤拆解</b>。</p>
+    <div class="meta">
+      <span>交互语言：<b>对话 / 引导式</b></span>
+      <span>核心动效：步骤进度 + 气泡滑入 + 打字动画 + 快捷 chip</span>
+      <span>改造量：<b>大</b>（重构为对话形态）</span>
+      <span class="star">最配：project3 需求拆解</span>
+    </div>
+
+    <div class="demo-frame">
+      <div class="demo-bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span style="font-size:12px;color:var(--muted);margin-left:8px">/project3 — 智能拆解助手</span></div>
+      <div class="demo-body">
+        <!-- 步骤指示器 -->
+        <div class="cv-stepper">
+          <div class="cv-step"><div class="cv-dot done">✓</div><span>输入需求</span></div>
+          <div class="cv-line done"></div>
+          <div class="cv-step"><div class="cv-dot on">2</div><span>智能拆解</span></div>
+          <div class="cv-line"></div>
+          <div class="cv-step"><div class="cv-dot">3</div><span>质量检查</span></div>
+          <div class="cv-line"></div>
+          <div class="cv-step"><div class="cv-dot">4</div><span>生成 TRD</span></div>
+        </div>
+        <!-- 对话区 -->
+        <div class="cv-chat" style="background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:16px">
+          <div class="cv-bubble cv-bot">👋 我已收到你的需求：「做一个用户调研问卷」。正在拆解…</div>
+          <div class="cv-bubble cv-you">开始拆解</div>
+          <div class="cv-thinking"><i></i><i></i><i></i></div>
+          <div class="cv-bubble cv-bot">✅ 拆解完成。研究目标：<b>明确用户痛点</b>；建议样本：<b>30 人</b>；周期：<b>2 周</b>。发现 1 处模糊用词「大概」。</div>
+          <!-- 快捷操作 -->
+          <div class="cv-quick">
+            <span class="chip">🔧 修正模糊词</span>
+            <span class="chip">📄 生成 TRD</span>
+            <span class="chip">🔄 换个角度</span>
+            <span class="chip">📊 看完整方案</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="desc">要点：顶部<b>步骤进度条</b>让流程一目了然（便捷）；AI 用<b>气泡 + 打字动画</b>拟人化交互（智能）；关键操作做成<b>可点 chip</b>，一键直达（便捷）；气泡逐条 <b>slideUp 滑入</b>有节奏感（灵动）。把「填表」变成「对话」 → <b>智能 + 便捷感最强</b>。</div>
+  </section>
+
+  <!-- ===================== 方案 3 ===================== -->
+  <section class="opt" id="opt-3">
+    <div class="opt-head">
+      <span class="opt-tag" style="background:#f472b6">方案 3</span>
+      <h2>卡片工作台 · Workspace</h2>
+    </div>
+    <p class="opt-sub">保留原有表单结构，但用<b>悬浮卡片网格 + 霓虹边框 + 流程节点</b>重新包装。每个区块是一张可 hover 浮起的玻璃卡片（复用方案 B 的 TiltCard 语言），底部用<b>发光流程节点</b>串起步骤。改动最轻、与首页最统一，<b>「成套感」最强</b>，两个页面通用。</p>
+    <div class="meta">
+      <span>交互语言：<b>卡片网格 / 模块化</b></span>
+      <span>核心动效：TiltCard 浮起 + 霓虹边 + 流程节点 + 结果 chip</span>
+      <span>改造量：<b>小</b>（替换容器 + 加动效，逻辑不动）</span>
+      <span class="star">最配：两页通用、成套统一</span>
+    </div>
+
+    <div class="demo-frame">
+      <div class="demo-bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span style="font-size:12px;color:var(--muted);margin-left:8px">/project1 & /project3 — 卡片工作台</span></div>
+      <div class="demo-body">
+        <div class="ws-grid">
+          <div class="ws-card">
+            <div class="ws-ic">✍️</div>
+            <div class="ws-t">输入需求</div>
+            <div class="ws-d">模糊需求或回答，AI 自动解析</div>
+            <div class="ws-foot"><span class="ws-badge b-cyan">实时计数</span><span class="ws-badge b-violet">智能校验</span></div>
+          </div>
+          <div class="ws-card">
+            <div class="ws-ic">🧠</div>
+            <div class="ws-t">智能处理</div>
+            <div class="ws-d">拆解 / 优化 / 质量检查</div>
+            <div class="ws-foot"><span class="ws-badge b-violet">AI 引擎</span><span class="ws-badge b-cyan">本地兜底</span></div>
+          </div>
+          <div class="ws-card">
+            <div class="ws-ic">📤</div>
+            <div class="ws-t">结果输出</div>
+            <div class="ws-d">结构化方案 / TRD 文档</div>
+            <div class="ws-foot"><span class="ws-badge b-pink">导出</span><span class="ws-badge b-cyan">同步 Jira</span></div>
+          </div>
+        </div>
+        <!-- 流程节点 -->
+        <div class="ws-flow">
+          <div class="ws-node"><div class="ring">1</div>输入</div>
+          <div class="ws-arr"></div>
+          <div class="ws-node"><div class="ring">2</div>拆解</div>
+          <div class="ws-arr"></div>
+          <div class="ws-node"><div class="ring">3</div>校验</div>
+          <div class="ws-arr"></div>
+          <div class="ws-node"><div class="ring">4</div>输出</div>
+        </div>
+      </div>
+    </div>
+    <div class="desc">要点：<b>直接复用首页 TiltCard 组件</b>，每个区块浮起 + 霓虹描边，与首页视觉完全统一（成套）；底部<b>发光流程节点</b> hover 放大旋转（灵动）；结果用<b>彩色 chip 标签</b>替代灰底 Badge（高级）。改动最小、风险最低 → <b>成套 + 高级感</b>。</div>
+  </section>
+
+  <!-- ===================== 对比表 ===================== -->
+  <section class="compare">
+    <h2>三个方案横向对比</h2>
+    <p class="opt-sub">都沿用深空 + 霓虹 + 浮动，配套方案 B；差异在交互语言与适配场景。</p>
+    <table>
+      <thead>
+        <tr><th>维度</th><th>1 · 深空控制台</th><th>2 · 智能对话流</th><th>3 · 卡片工作台</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>交互语言</td><td>仪表盘 / 实时数据</td><td>对话 / 引导式</td><td>卡片网格 / 模块化</td></tr>
+        <tr><td>智能感</td><td>★★★☆☆</td><td><b>★★★★★</b></td><td>★★★☆☆</td></tr>
+        <tr><td>便捷感</td><td><b>★★★★★</b></td><td>★★★★☆</td><td>★★★☆☆</td></tr>
+        <tr><td>高级感</td><td><b>★★★★★</b></td><td>★★★★☆</td><td>★★★★☆</td></tr>
+        <tr><td>与首页成套</td><td>★★★★☆</td><td>★★★☆☆</td><td><b>★★★★★</b></td></tr>
+        <tr><td>改造量</td><td>中</td><td>大</td><td><b>小</b></td></tr>
+        <tr><td>最佳适配</td><td>project1 字数优化</td><td>project3 需求拆解</td><td>两页通用</td></tr>
+        <tr><td>一句话</td><td>最「精密」</td><td>最「智能」</td><td>最「成套」</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="footer">
+    <p>选定方向后，我会落地到 <code>src/app/project1/page.tsx</code> 和 <code>src/app/project3/page.tsx</code>，复用已有的 <code>TiltCard</code> 与深空样式。</p>
+    <div class="pillrow">
+      <a href="#opt-1">选 1 · 深空控制台</a>
+      <a href="#opt-2">选 2 · 智能对话流</a>
+      <a href="#opt-3">选 3 · 卡片工作台</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
