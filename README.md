@@ -81,3 +81,38 @@ npm install
 npm run dev
 
 # 打开 http://localhost:3000
+```
+
+## AI 配置（DeepSeek）
+
+project1 / project3 的"智能追问 / 需求拆解 / TRD 生成"默认调用 **DeepSeek** 大模型，让演示用上真正的 AI 理解与对话能力。**未配置 Key 时会自动静默回退到内置的本地规则**，演示在任何环境下都能正常运行。
+
+### 配置步骤
+
+1. 在 [DeepSeek 开放平台](https://platform.deepseek.com/) 申请 API Key。
+2. 复制 `.env.example` 为 `.env.local`：
+   ```bash
+   cp .env.example .env.local
+   ```
+3. 在 `.env.local` 中填入：
+   ```env
+   DEEPSEEK_API_KEY=sk-你的key
+   ```
+4. 重启 `npm run dev` 即可生效。部署到 Vercel 时把同名变量加到项目环境变量里。
+
+### 安全说明
+
+- `DEEPSEEK_API_KEY` **不带** `NEXT_PUBLIC_` 前缀，只在服务端（`src/app/api/**` Route Handler）通过 `process.env` 读取，永远不会进客户端 bundle 或被浏览器看到。
+- `.env.local` 已被 `.gitignore` 忽略，不会误提交。仓库里只提交了 `.env.example`（占位值）。
+- 请求经由 Next.js 服务端路由代理转发到 DeepSeek，客户端不直连第三方。
+
+### 架构
+
+```
+浏览器 ──(fetch)──> /api/project1/followup|chat、/api/project3/decompose|trd
+                          │ 读取 process.env.DEEPSEEK_API_KEY
+                          ▼
+                    DeepSeek Chat Completions API
+```
+
+调用失败 / 超时 / 未配置 Key → 客户端 `src/lib/ai-client.ts` 静默回退到 `src/lib/rules-*.ts` 本地规则，用户无感知。
