@@ -57,7 +57,7 @@
 
 ## 产品文档
 
-面试准备的完整产品文档：
+完整产品文档：
 
 - 📄 [PRD - 项目 1：AI 追问长度动态优化](https://github.com/HannahZ-Mulan/quria-demo/blob/main/PRD_AI_追问长度动态优化方案.md)
 - 📄 [SRS - 项目 1：AI 追问长度动态优化系统](https://github.com/HannahZ-Mulan/quria-demo/blob/main/SRS_AI_追问长度动态优化系统.md)
