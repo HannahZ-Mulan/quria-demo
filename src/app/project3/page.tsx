@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n, Language } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface DecomposeResult {
   researchType: string;
@@ -19,6 +19,7 @@ interface DecomposeResult {
 }
 
 export default function Project3Demo() {
+  const { t, lang, setLang } = useI18n();
   const [rawRequirement, setRawRequirement] = useState("");
   const [result, setResult] = useState<DecomposeResult | null>(null);
   const [showTRD, setShowTRD] = useState(false);
@@ -26,7 +27,6 @@ export default function Project3Demo() {
   const decompose = () => {
     const text = rawRequirement.toLowerCase();
     
-    // 模拟拆解逻辑
     const fuzzyWords = ["更深入", "越多越好", "尽快", "高端", "大概", "差不多"];
     const foundFuzzy = fuzzyWords.filter(w => text.includes(w));
     
@@ -43,7 +43,6 @@ export default function Project3Demo() {
       fuzzyMarks: foundFuzzy,
     };
 
-    // 冲突检测
     if (text.includes("100") && text.includes("深入") && text.includes("一周")) {
       result.conflicts.push("样本量大 + 深度访谈 + 时间短，不可行");
     }
@@ -62,41 +61,52 @@ export default function Project3Demo() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* 头部 */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">项目 3：客户研究需求标准化拆解</h1>
-          <p className="text-gray-600">将模糊客户需求自动翻译为可执行的技术方案</p>
+        {/* 语言切换 */}
+        <div className="flex justify-end gap-2">
+          {["zh-CN", "zh-TW", "en", "yue", "ja"].map((l) => (
+            <Button
+              key={l}
+              variant={lang === l ? "default" : "outline"}
+              size="sm"
+              onClick={() => setLang(l as Language)}
+            >
+              {l === "zh-CN" ? "简" : l === "zh-TW" ? "繁" : l === "en" ? "EN" : l === "yue" ? "粤" : "日"}
+            </Button>
+          ))}
         </div>
 
-        {/* 输入区 */}
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-gray-900">{t("project3_title")}</h1>
+          <p className="text-gray-600">{t("project3_desc")}</p>
+        </div>
+
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">客户原始需求</CardTitle>
+            <CardTitle className="text-lg">{t("raw_requirement")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea
-              placeholder="请输入客户的原始需求（例如：我们想更深入地了解年轻妈妈群体的购买决策，样本越多越好，尽快交付）"
+              placeholder={t("requirement_placeholder")}
               value={rawRequirement}
               onChange={(e) => setRawRequirement(e.target.value)}
               className="min-h-[100px]"
             />
             <div className="flex gap-2">
-              <Button onClick={decompose} className="flex-1">智能拆解</Button>
+              <Button onClick={decompose} className="flex-1">{t("smart_decompose")}</Button>
               {result && (
                 <Button onClick={generateTRD} variant="outline" className="flex-1">
-                  生成技术需求文档
+                  {t("generate_trd")}
                 </Button>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* 拆解结果 */}
         {result && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">结构化拆解结果</CardTitle>
+                <CardTitle className="text-lg">{t("decompose_result")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
@@ -128,12 +138,12 @@ export default function Project3Demo() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">质量检查</CardTitle>
+                <CardTitle className="text-lg">{t("quality_check")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {result.fuzzyMarks.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-yellow-700 mb-2">模糊表述标记：</p>
+                    <p className="text-sm font-medium text-yellow-700 mb-2">{t("fuzzy_marks")}：</p>
                     <div className="flex flex-wrap gap-2">
                       {result.fuzzyMarks.map((mark, idx) => (
                         <Badge key={idx} variant="secondary" className="bg-yellow-100 text-yellow-800">
@@ -146,7 +156,7 @@ export default function Project3Demo() {
                 
                 {result.conflicts.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-red-700 mb-2">冲突检测：</p>
+                    <p className="text-sm font-medium text-red-700 mb-2">{t("conflict_detection")}：</p>
                     <div className="space-y-2">
                       {result.conflicts.map((conflict, idx) => (
                         <div key={idx} className="p-2 bg-red-50 border border-red-200 rounded text-sm text-red-800">
@@ -164,7 +174,7 @@ export default function Project3Demo() {
                 )}
 
                 <div className="pt-2">
-                  <p className="text-sm font-medium text-gray-700 mb-2">交付物清单：</p>
+                  <p className="text-sm font-medium text-gray-700 mb-2">{t("deliverables")}：</p>
                   <div className="flex flex-wrap gap-2">
                     {result.deliverables.map((item, idx) => (
                       <Badge key={idx} variant="outline">{item}</Badge>
@@ -176,11 +186,10 @@ export default function Project3Demo() {
           </div>
         )}
 
-        {/* TRD 预览 */}
         {showTRD && result && (
           <Card className="border-2 border-blue-200">
             <CardHeader>
-              <CardTitle className="text-lg text-blue-900">技术需求文档（TRD）预览</CardTitle>
+              <CardTitle className="text-lg text-blue-900">{t("trd_preview")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm space-y-2">
@@ -201,37 +210,36 @@ export default function Project3Demo() {
                 <p>{result.deliverables.join(" + ")}</p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">导出 Markdown</Button>
-                <Button variant="outline" size="sm">导出 PDF</Button>
-                <Button variant="outline" size="sm">同步到 Jira</Button>
+                <Button variant="outline" size="sm">{t("export_md")}</Button>
+                <Button variant="outline" size="sm">{t("export_pdf")}</Button>
+                <Button variant="outline" size="sm">{t("sync_jira")}</Button>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* 流程说明 */}
         <Card className="bg-gray-100 border-0">
           <CardContent className="pt-6">
-            <h3 className="font-semibold mb-2">需求拆解流程</h3>
+            <h3 className="font-semibold mb-2">{t("flow_title")}</h3>
             <div className="flex items-center justify-between text-sm text-gray-600">
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-1">1</div>
-                <p>录入原始需求</p>
+                <p>{t("flow_step1")}</p>
               </div>
               <div className="flex-1 h-0.5 bg-gray-300 mx-2"></div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-1">2</div>
-                <p>智能拆解</p>
+                <p>{t("flow_step2")}</p>
               </div>
               <div className="flex-1 h-0.5 bg-gray-300 mx-2"></div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-1">3</div>
-                <p>冲突检测</p>
+                <p>{t("flow_step3")}</p>
               </div>
               <div className="flex-1 h-0.5 bg-gray-300 mx-2"></div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-1">4</div>
-                <p>生成 TRD</p>
+                <p>{t("flow_step4")}</p>
               </div>
             </div>
           </CardContent>
