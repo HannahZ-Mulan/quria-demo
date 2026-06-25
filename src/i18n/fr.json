@@ -87,5 +87,14 @@
   "p3_check_found": "Contrôle qualité terminé. Trouvé {fuzzy} termes vagues et {conflict} conflits potentiels — détails ci-dessous :",
   "p3_trd_request": "Générer le document d'exigences techniques (TRD)",
   "p3_trd_intro": "TRD généré. Aperçu ci-dessous (exporter Markdown / PDF ou copier le texte complet) :",
-  "p3_reset_done": "Réinitialisé. Envoyez-moi une nouvelle exigence."
+  "p3_reset_done": "Réinitialisé. Envoyez-moi une nouvelle exigence.",
+  "rhythm_panel_title": "Analyse du rythme de l'entretien",
+  "rhythm_fatigue_score": "Fatigue",
+  "rhythm_status_good": "Bon",
+  "rhythm_status_warn": "Attention",
+  "rhythm_status_risk": "Alerte",
+  "rhythm_suggestion": "⚠️ L'interviewé semble fatigué — envisagez de raccourcir les relances ou de passer à un sujet plus léger.",
+  "rhythm_insufficient": "L'analyse démarre après 2+ tours",
+  "rhythm_turns_unit": "tours",
+  "rhythm_chart_label": "Longueur de réponse par tour (plus haut = plus engagé)"
 }

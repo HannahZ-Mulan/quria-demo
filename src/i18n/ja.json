@@ -87,5 +87,14 @@
   "p3_check_found": "品質チェック完了。曖昧な表現 {fuzzy} 件、潜在的な矛盾 {conflict} 件を発見しました。詳細は下記の通り：",
   "p3_trd_request": "技術要件書（TRD）を生成",
   "p3_trd_intro": "TRDを生成しました。以下がプレビューです（Markdown / PDF エクスポート、または全文コピー可）：",
-  "p3_reset_done": "リセットしました。新しい要件を送ってください。"
+  "p3_reset_done": "リセットしました。新しい要件を送ってください。",
+  "rhythm_panel_title": "インタビューリズム分析",
+  "rhythm_fatigue_score": "疲労度",
+  "rhythm_status_good": "良好",
+  "rhythm_status_warn": "注意",
+  "rhythm_status_risk": "要警戒",
+  "rhythm_suggestion": "⚠️ 回答者が疲れている可能性があります。追質問を短くし、軽い話題に切り替えることをお勧めします。",
+  "rhythm_insufficient": "2ターン以上で分析を開始します",
+  "rhythm_turns_unit": "ターン",
+  "rhythm_chart_label": "各ターンの回答文字数（多いほど参加度が高い）"
 }

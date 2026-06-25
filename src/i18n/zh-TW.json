@@ -87,5 +87,14 @@
   "p3_check_found": "品質檢查完成。發現 {fuzzy} 處模糊用詞、{conflict} 處潛在衝突，詳見下方：",
   "p3_trd_request": "生成技術需求文件（TRD）",
   "p3_trd_intro": "TRD 已生成，預覽如下（可匯出 Markdown / PDF，或複製全文）：",
-  "p3_reset_done": "已重置。把新的需求發給我吧。"
+  "p3_reset_done": "已重置。把新的需求發給我吧。",
+  "rhythm_panel_title": "訪談節奏分析",
+  "rhythm_fatigue_score": "疲勞度",
+  "rhythm_status_good": "良好",
+  "rhythm_status_warn": "注意",
+  "rhythm_status_risk": "警惕",
+  "rhythm_suggestion": "⚠️ 受訪者可能疲勞，建議縮短追問、切換輕鬆話題",
+  "rhythm_insufficient": "對話輪數 ≥ 2 後開始分析",
+  "rhythm_turns_unit": "輪",
+  "rhythm_chart_label": "每輪回答字數（越高參與度越好）"
 }

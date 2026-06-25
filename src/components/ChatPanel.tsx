@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect, KeyboardEvent } from "react";
+import { useState, useRef, useEffect, KeyboardEvent, useMemo } from "react";
 import { useI18n } from "@/i18n";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { callChatAI } from "@/lib/ai-client";
-import type { ChatMessage } from "@/lib/types";
+import { analyzeRhythm } from "@/lib/rhythm-analyzer";
+import type { ChatMessage, RhythmReport } from "@/lib/types";
 
 /**
  * project1 的"多轮对话"面板（深空控制台风格版）。
@@ -13,12 +14,15 @@ import type { ChatMessage } from "@/lib/types";
  * AI（通过 /api/project1/chat 接口）扮演专业访谈员，每次只问一个开放式追问，
  * 并且能记住之前的对话内容。如果 AI 不可用，会静默改用本地规则，用户不会看到报错。
  *
- * 功能不变：显示聊天气泡、自动滚到底部、按 Ctrl/Cmd+Enter 发送、显示"本地模式"标签。
- * 仅外观改为深空风：用户气泡用紫青渐变、AI 气泡用玻璃质感、"打字中"三点跳动。
+ * 功能：显示聊天气泡、自动滚到底部、按 Ctrl/Cmd+Enter 发送、显示"本地模式"标签。
+ * 外观为深空风：用户气泡用紫青渐变、AI 气泡用玻璃质感、"打字中"三点跳动。
+ *
+ * 底部附带「访谈节奏面板」（Rhythm Panel）：把受访者的参与度趋势、疲劳度
+ * 可视化——这是 Quria 相对国际竞品的差异化能力。
  */
 export function ChatPanel() {
   const { t, lang } = useI18n();
-  // 对话消息列表（用户和 AI 来回的内容）
+  // 对话消息列表（用户和 AI 来回的内容，带 ts 时间戳用于节奏分析）
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // 输入框里当前的文字
   const [input, setInput] = useState("");
@@ -28,30 +32,42 @@ export function ChatPanel() {
   const [usedAI, setUsedAI] = useState(true);
   // 用来引用聊天滚动区域，方便自动滚到底部
   const scrollRef = useRef<HTMLDivElement>(null);
+  // 记录"AI 上一条消息发出的时刻"，用于计算用户下一轮的响应间隔
+  const lastAssistantTsRef = useRef<number | null>(null);
 
   // 当消息变化或加载状态变化时，把聊天区自动滚动到最底部
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
 
+  // 节奏报告：消息一变就重算（纯前端，开销极小）。
+  const rhythm: RhythmReport = useMemo(() => analyzeRhythm(messages), [messages]);
+
   /**
    * 发送当前输入框里的消息。
-   * 把用户消息加进列表 → 调用 AI 接口拿到回复 → 把回复也加进列表。
+   * 把用户消息加进列表（打上时间戳）→ 调用 AI 接口拿到回复 → 把回复也加进列表。
    * 空消息或正在加载时不发送。
    */
   const send = async () => {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
 
-    const nextMessages: ChatMessage[] = [...messages, { role: "user", content: trimmed }];
+    const now = Date.now();
+    // 用户这条消息相对 AI 上一条的响应间隔，由 analyzeRhythm 用 ts 差值算出。
+    const nextMessages: ChatMessage[] = [
+      ...messages,
+      { role: "user", content: trimmed, ts: now },
+    ];
     setMessages(nextMessages);
     setInput("");
     setLoading(true);
 
     try {
       const { reply, usedAI: ai } = await callChatAI(nextMessages, lang);
-      setMessages([...nextMessages, { role: "assistant", content: reply }]);
+      const replyTs = Date.now();
+      setMessages([...nextMessages, { role: "assistant", content: reply, ts: replyTs }]);
       setUsedAI(ai);
+      lastAssistantTsRef.current = replyTs;
     } finally {
       setLoading(false);
     }
@@ -125,6 +141,7 @@ export function ChatPanel() {
               onClick={() => {
                 setMessages([]);
                 setUsedAI(true);
+                lastAssistantTsRef.current = null;
               }}
               className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-gray-500 transition-colors hover:text-gray-200 hover:bg-white/10"
               title={t("clear_history")}
@@ -154,6 +171,147 @@ export function ChatPanel() {
           {loading ? t("ai_loading") : t("send_message")}
         </Button>
       </div>
+
+      {/* 访谈节奏面板（差异化亮点） */}
+      <RhythmPanel rhythm={rhythm} />
     </div>
   );
+}
+
+/* ============================================================
+ * 访谈节奏面板（Interview Rhythm Panel）
+ * ============================================================
+ * 三部分：
+ * 1) 柱状波形图——每轮用户回答字数占比，颜色按 good/warn/risk 分级
+ * 2) 疲劳度仪表盘——SVG 半圆弧，0-100
+ * 3) 建议横幅——疲劳度高时提示缩短追问
+ */
+
+function RhythmPanel({ rhythm }: { rhythm: RhythmReport }) {
+  const { t } = useI18n();
+  const { points, fatigueScore, suggestion } = rhythm;
+
+  // 趋势与状态文案
+  const statusKey =
+    fatigueScore >= 60 ? "rhythm_status_risk" : fatigueScore >= 30 ? "rhythm_status_warn" : "rhythm_status_good";
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-4">
+      {/* 标题行 */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold tracking-wide text-gray-300">
+          📊 {t("rhythm_panel_title")}
+        </span>
+        <span className="text-[10px] text-gray-500">
+          {points.length < 2 ? t("rhythm_insufficient") : `${points.length} ${t("rhythm_turns_unit")}`}
+        </span>
+      </div>
+
+      {points.length < 2 ? (
+        // 数据不足时的占位
+        <div className="py-6 text-center text-xs text-gray-600">
+          {t("rhythm_insufficient")}
+        </div>
+      ) : (
+        <>
+          {/* 主体：左侧柱状图 + 右侧仪表盘 */}
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4 items-center">
+            {/* 柱状波形图 */}
+            <div>
+              <div className="flex items-end gap-1.5 h-24">
+                {points.map((p) => {
+                  // 柱高 = 字数相对当前最大字数的占比，最低 8px 保证可见
+                  const maxChars = Math.max(...points.map((x) => x.charCount), 1);
+                  const ratio = p.charCount / maxChars;
+                  const height = Math.max(8, Math.round(ratio * 88));
+                  return (
+                    <div
+                      key={p.turn}
+                      className="rhythm-bar-wrap group relative flex-1 flex flex-col items-center justify-end"
+                      style={{ height: "100%" }}
+                    >
+                      {/* 悬停提示 */}
+                      <div className="rhythm-tooltip pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md border border-white/15 bg-slate-900/95 px-2 py-1 text-[10px] text-gray-200 opacity-0 transition-opacity group-hover:opacity-100">
+                        #{p.turn} · {p.charCount}{t("char_unit")} · {formatDelay(p.delayMs)}
+                      </div>
+                      {/* 柱子 */}
+                      <div
+                        className={`rhythm-bar rhythm-bar-${p.level}`}
+                        style={{ height: `${height}%` }}
+                      />
+                      <span className="mt-1 text-[9px] text-gray-600">{p.turn}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-1 text-[10px] text-gray-600">{t("rhythm_chart_label")}</div>
+            </div>
+
+            {/* 疲劳度仪表盘 */}
+            <div className="flex flex-col items-center justify-self-center">
+              <FatigueGauge score={fatigueScore} />
+              <div className="mt-1 text-[11px] font-semibold text-gray-300">{t(statusKey)}</div>
+              <div className="text-[9px] uppercase tracking-wide text-gray-600">{t("rhythm_fatigue_score")}</div>
+            </div>
+          </div>
+
+          {/* 建议横幅（仅高疲劳度时） */}
+          {suggestion && (
+            <div className="rhythm-suggestion rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs text-amber-200 animate-bubble-in">
+              {t(suggestion)}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/** 半圆疲劳度仪表盘（SVG）。0=绿，50=黄，100=红。 */
+function FatigueGauge({ score }: { score: number }) {
+  const clamped = Math.max(0, Math.min(100, score));
+  // 半圆从 180° 到 360°（即从左到右的下半圆反过来——这里用上半圆 180°→0°）。
+  // 用 stroke-dasharray 控制填充比例。
+  const radius = 34;
+  const circumference = Math.PI * radius; // 半圆周长
+  const filled = (clamped / 100) * circumference;
+  return (
+    <svg width="92" height="56" viewBox="0 0 92 56" className="fatigue-gauge">
+      <defs>
+        <linearGradient id="fatigueGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#22d3ee" />
+          <stop offset="50%" stopColor="#eab308" />
+          <stop offset="100%" stopColor="#f43f5e" />
+        </linearGradient>
+      </defs>
+      {/* 背景弧（灰） */}
+      <path
+        d="M 8 50 A 34 34 0 0 1 84 50"
+        fill="none"
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
+      {/* 进度弧（渐变） */}
+      <path
+        d="M 8 50 A 34 34 0 0 1 84 50"
+        fill="none"
+        stroke="url(#fatigueGrad)"
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeDasharray={`${filled} ${circumference}`}
+      />
+      {/* 中心分数 */}
+      <text x="46" y="46" textAnchor="middle" className="fill-white" style={{ fontSize: 18, fontWeight: 700 }}>
+        {clamped}
+      </text>
+    </svg>
+  );
+}
+
+/** 把毫秒间隔格式化为可读文案（如 "2.3s"）。 */
+function formatDelay(ms: number): string {
+  if (ms <= 0) return "—";
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
 }

@@ -87,5 +87,14 @@
   "p3_check_found": "בדיקת איכות הושלמה. נמצאו {fuzzy} מונחים מעורפלים ו-{conflict} התנגשויות פוטנציאליות — פרטים למטה:",
   "p3_trd_request": "ייצר מסמך דרישות טכניות (TRD)",
   "p3_trd_intro": "ה-TRD נוצר. תצוגה מקדימה למטה (ייצוא Markdown / PDF או העתקת הטקסט המלא):",
-  "p3_reset_done": "אופס. שלחו לי דרישה חדשה."
+  "p3_reset_done": "אופס. שלחו לי דרישה חדשה.",
+  "rhythm_panel_title": "ניתוח קצב הראיון",
+  "rhythm_fatigue_score": "עייפות",
+  "rhythm_status_good": "טוב",
+  "rhythm_status_warn": "שים לב",
+  "rhythm_status_risk": "התראה",
+  "rhythm_suggestion": "⚠ ייתכן שהמרואיין עייף — מומלץ לקצר את שאלות ההמשך או לעבור לנושא קל יותר.",
+  "rhythm_insufficient": "הניתוח מתחיל אחרי 2+ תורות",
+  "rhythm_turns_unit": "תורות",
+  "rhythm_chart_label": "אורך תשובה לכל תור (גבוה יותר = מעורבות רבה יותר)"
 }

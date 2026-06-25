@@ -87,5 +87,14 @@
   "p3_check_found": "Quality check complete. Found {fuzzy} fuzzy terms and {conflict} potential conflicts — details below:",
   "p3_trd_request": "Generate Technical Requirements Document (TRD)",
   "p3_trd_intro": "TRD generated. Preview below (export Markdown / PDF, or copy the full text):",
-  "p3_reset_done": "Reset. Send me a new requirement."
+  "p3_reset_done": "Reset. Send me a new requirement.",
+  "rhythm_panel_title": "Interview Rhythm Analysis",
+  "rhythm_fatigue_score": "Fatigue",
+  "rhythm_status_good": "Good",
+  "rhythm_status_warn": "Watch",
+  "rhythm_status_risk": "Alert",
+  "rhythm_suggestion": "⚠️ The respondent may be fatigued — consider shortening follow-ups or switching to a lighter topic.",
+  "rhythm_insufficient": "Analysis starts after 2+ turns",
+  "rhythm_turns_unit": "turns",
+  "rhythm_chart_label": "Answer length per turn (higher = more engaged)"
 }

@@ -72,6 +72,43 @@ export interface ChatMessage {
   role: "user" | "assistant";
   /** 这条消息的文字内容。 */
   content: string;
+  /**
+   * 这条消息发出的时间戳（ms，Date.now()）。
+   * 仅用于前端节奏分析（计算回答间隔），API 不需要这个字段。
+   * 老消息没有时间戳时按 undefined 处理。
+   */
+  ts?: number;
+}
+
+// ===== project1：访谈节奏分析（多轮对话专用） =====
+
+/**
+ * 某一轮对话的节奏数据点。
+ * "一轮" = 用户回答一次。
+ */
+export interface RhythmPoint {
+  /** 第几轮（从 1 开始）。 */
+  turn: number;
+  /** 该轮用户回答的字数。 */
+  charCount: number;
+  /** 该轮用户从 AI 说完到回复的间隔（毫秒）。无法计算时为 0。 */
+  delayMs: number;
+  /** 该轮状态：good 正常 / warn 注意 / risk 风险。 */
+  level: "good" | "warn" | "risk";
+}
+
+/**
+ * 整段对话的节奏报告。由节奏分析引擎根据消息历史算出。
+ */
+export interface RhythmReport {
+  /** 每轮的节奏数据点。 */
+  points: RhythmPoint[];
+  /** 整体疲劳度 0-100，越高越疲劳。 */
+  fatigueScore: number;
+  /** 参与度趋势：rising 上升 / stable 平稳 / declining 下降。 */
+  trend: "rising" | "stable" | "declining";
+  /** 建议文案的 i18n key（疲劳度高时返回 "rhythm_suggestion"，否则 null）。 */
+  suggestion: string | null;
 }
 
 /**

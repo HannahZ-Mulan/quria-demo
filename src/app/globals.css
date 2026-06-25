@@ -264,6 +264,26 @@
   animation: typing-bounce 1.2s infinite;
 }
 
+/* 访谈节奏面板：柱状图 + 仪表盘 */
+.rhythm-bar {
+  width: 100%;
+  max-width: 28px;
+  border-radius: 4px 4px 1px 1px;
+  transition: height 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+  animation: rhythm-rise 0.5s ease both;
+}
+.rhythm-bar-good { background: linear-gradient(to top, rgba(34, 211, 238, 0.45), rgba(34, 211, 238, 0.9)); }
+.rhythm-bar-warn { background: linear-gradient(to top, rgba(234, 179, 8, 0.45), rgba(234, 179, 8, 0.9)); }
+.rhythm-bar-risk { background: linear-gradient(to top, rgba(244, 63, 94, 0.45), rgba(244, 63, 94, 0.9)); }
+
+@keyframes rhythm-rise {
+  from { opacity: 0; transform: scaleY(0); transform-origin: bottom; }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+/* 仪表盘分数文字随主题 */
+.fatigue-gauge text { font-family: inherit; }
+
 /* 尊重用户的「减少动态」偏好 */
 @media (prefers-reduced-motion: reduce) {
   .aurora-stage::after,
@@ -271,5 +291,6 @@
   .shimmer-btn::after,
   .animate-cockpit-pop,
   .animate-bubble-in,
-  .typing-dot { animation: none; transition: none; }
+  .typing-dot,
+  .rhythm-bar { animation: none; transition: none; }
 }

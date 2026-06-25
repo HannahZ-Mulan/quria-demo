@@ -87,5 +87,14 @@
   "p3_check_found": "Verificação de qualidade concluída. Encontrados {fuzzy} termos vagos e {conflict} conflitos potenciais — detalhes abaixo:",
   "p3_trd_request": "Gerar documento de requisitos técnicos (TRD)",
   "p3_trd_intro": "TRD gerado. Pré-visualização abaixo (exportar Markdown / PDF ou copiar o texto completo):",
-  "p3_reset_done": "Reiniciado. Envie-me um novo requisito."
+  "p3_reset_done": "Reiniciado. Envie-me um novo requisito.",
+  "rhythm_panel_title": "Análise do ritmo da entrevista",
+  "rhythm_fatigue_score": "Fadiga",
+  "rhythm_status_good": "Bom",
+  "rhythm_status_warn": "Atenção",
+  "rhythm_status_risk": "Alerta",
+  "rhythm_suggestion": "⚠️ O entrevistado pode estar fadigado — considere encurtar as perguntas de aprofundamento ou mudar para um tópico mais leve.",
+  "rhythm_insufficient": "A análise começa após 2+ turnos",
+  "rhythm_turns_unit": "turnos",
+  "rhythm_chart_label": "Tamanho da resposta por turno (maior = mais engajado)"
 }

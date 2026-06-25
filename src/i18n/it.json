@@ -87,5 +87,14 @@
   "p3_check_found": "Controllo qualità completato. Trovati {fuzzy} termini vaghi e {conflict} potenziali conflitti — dettagli di seguito:",
   "p3_trd_request": "Genera documento dei requisiti tecnici (TRD)",
   "p3_trd_intro": "TRD generato. Anteprima di seguito (esporta Markdown / PDF o copia il testo completo):",
-  "p3_reset_done": "Reimpostato. Inviami un nuovo requisito."
+  "p3_reset_done": "Reimpostato. Inviami un nuovo requisito.",
+  "rhythm_panel_title": "Analisi del ritmo dell'intervista",
+  "rhythm_fatigue_score": "Affaticamento",
+  "rhythm_status_good": "Buono",
+  "rhythm_status_warn": "Attenzione",
+  "rhythm_status_risk": "Allerta",
+  "rhythm_suggestion": "⚠️ L'intervistato potrebbe essere stanco — valuta di accorciare le domande di approfondimento o passare a un argomento più leggero.",
+  "rhythm_insufficient": "L'analisi inizia dopo 2+ turni",
+  "rhythm_turns_unit": "turni",
+  "rhythm_chart_label": "Lunghezza risposta per turno (più alto = più coinvolto)"
 }
