@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { callDeepSeek, DeepSeekConfigError, extractStatus } from "@/lib/deepseek";
 import type { ChatMessage, ChatRequest } from "@/lib/types";
+import type { Language } from "@/i18n";
 
 // 最多保留最近 10 轮对话（不含 system 消息），用来控制成本和延迟
 const MAX_TURNS = 10;
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { messages } = body;
+  const { messages, lang } = body;
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "Missing messages" }, { status: 400 });
   }
@@ -74,11 +75,18 @@ export async function POST(request: Request) {
   }
 
   const conversation = clampMessages(messages);
+  // AI 用语言：未指定时默认简体中文
+  const replyLang: Language = lang ?? "zh-CN";
+  const langInstruction =
+    replyLang === "en"
+      ? "Respond entirely in English."
+      : "全部用简体中文回复。";
+  const systemPrompt = `${SYSTEM_PROMPT}\n${langInstruction}`;
 
   try {
     const reply = await callDeepSeek({
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: systemPrompt },
         ...conversation.map((m) => ({ role: m.role, content: m.content })),
       ],
       maxTokens: 256,

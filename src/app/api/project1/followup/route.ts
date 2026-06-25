@@ -5,6 +5,7 @@
 import { NextResponse } from "next/server";
 import { callDeepSeekJSON, DeepSeekConfigError, extractStatus } from "@/lib/deepseek";
 import type { FollowupRequest } from "@/lib/types";
+import type { Language } from "@/i18n";
 
 // 回答文字的最大长度（防止有人输入超长内容）
 const MAX_ANSWER_LEN = 2000;
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { answer, mode, device } = body;
+  const { answer, mode, device, lang } = body;
   if (
     typeof answer !== "string" ||
     typeof mode !== "string" ||
@@ -61,10 +62,17 @@ export async function POST(request: Request) {
 
   const answerLength = answer.trim().length;
   const maxLength = maxLengthFor(answerLength, mode, device);
+  // AI 用语言：未指定时默认简体中文，保持向后兼容
+  const replyLang: Language = lang ?? "zh-CN";
+  const langInstruction =
+    replyLang === "en"
+      ? "Respond entirely in English."
+      : "全部用简体中文回复。";
 
   const systemPrompt = [
     "你是一位资深的用户研究访谈员，正在根据受访者的回答生成下一句追问。",
     "目标是挖出更深层的动机、场景或具体细节，追问必须自然、专业、口语化。",
+    langInstruction,
     `约束：本次追问字数必须 ≤ ${maxLength} 字（按字符数计，含标点）。`,
     `当前模式：${mode}（精简=最短直击要点，标准=适中，深度=充分展开）。`,
     `目标设备：${device}${device === "移动端" ? "（移动端，问题要更简短）" : ""}。`,

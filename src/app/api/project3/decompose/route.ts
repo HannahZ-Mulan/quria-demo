@@ -18,6 +18,7 @@ const SCHEMA_EXAMPLE = `{
   "depth": "L1 快速筛查 / L2 探索访谈 / L3 深度访谈",
   "sampleSize": "样本量与建议（如\"15人（适合深度个案）\"或\"建议 100-300 人（统计显著性）\"）",
   "duration": "预计周期与评估（如\"14天（合理，可执行）\"或\"建议 2-3 周\"）",
+  "interviewDuration": "每场访谈的建议时长（如\"20-30分钟/人\"，L1=10-15分钟、L2=20-30分钟、L3=45-60分钟）",
   "strategy": "追问策略，多个用 + 连接",
   "deliverables": ["交付物1", "交付物2"],
   "conflicts": ["发现的需求冲突或缺失（无则空数组）"],
@@ -69,14 +70,21 @@ export async function POST(request: Request) {
     });
 
     // Normalize arrays defensively in case the model omits/mistypes a field.
+    const normalizedDepth = result.depth ?? "L2 探索访谈";
+    const defaultInterviewDuration = normalizedDepth.includes("L3")
+      ? "45-60分钟/人"
+      : normalizedDepth.includes("L2")
+        ? "20-30分钟/人"
+        : "10-15分钟/人";
     const normalized: DecomposeResult = {
       researchGoal: result.researchGoal ?? "未明确",
       targetAudience: result.targetAudience ?? "未明确",
       researchScene: result.researchScene ?? "通用调研",
       researchType: result.researchType ?? "建议定性研究（先探索）",
-      depth: result.depth ?? "L2 探索访谈",
+      depth: normalizedDepth,
       sampleSize: result.sampleSize ?? "未指定",
       duration: result.duration ?? "未指定",
+      interviewDuration: result.interviewDuration ?? defaultInterviewDuration,
       strategy: result.strategy ?? "开放式探索",
       deliverables: Array.isArray(result.deliverables)
         ? result.deliverables.filter((d) => typeof d === "string")

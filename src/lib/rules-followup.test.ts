@@ -74,9 +74,31 @@ describe("generateFollowupByRule", () => {
     expect(r.question).toBe("多少钱合适？");
   });
 
-  it("wordCount equals question length and originalLength mirrors it", () => {
-    const r = generateFollowupByRule("好用", "标准", "PC");
+  it("originalLength = 该分支深度模式的长度（压缩率参考口径），与精简模式实际长度不同", () => {
+    // 精简模式：实际很短，但 originalLength 取深度版长度 → 压缩率 > 0%
+    const r = generateFollowupByRule("好用", "精简", "PC");
     expect(r.wordCount).toBe(r.question.length);
-    expect(r.originalLength).toBe(r.question.length);
+    // originalLength 应等于同一回答、同一分支在「深度模式」下生成的实际追问长度
+    const deepRef = generateFollowupByRule("好用", "深度", "PC");
+    expect(r.originalLength).toBe(deepRef.wordCount);
+    expect(r.originalLength).toBeGreaterThan(r.wordCount);
+  });
+
+  it("深度模式下 originalLength === wordCount（诚实表达深度 = 不压缩，压缩率 0%）", () => {
+    const r = generateFollowupByRule("好用", "深度", "PC");
+    expect(r.originalLength).toBe(r.wordCount);
+  });
+
+  it("英文语言下返回英文追问与英文策略标签", () => {
+    const r = generateFollowupByRule("the price is too high", "标准", "PC", "en");
+    expect(r.question).toBe("You mentioned price — what would you consider a reasonable range?");
+    expect(r.strategy).toBe("Price sensitivity (standard mode)");
+  });
+
+  it("英文界面下命中关键词分支", () => {
+    // 'great' 属于正面分支关键词，且不触发其他分支
+    const r = generateFollowupByRule("this product is great", "精简", "PC", "en");
+    expect(r.strategy).toBe("Preference mining (compact mode)");
+    expect(r.question).toBe("What did you like most?");
   });
 });

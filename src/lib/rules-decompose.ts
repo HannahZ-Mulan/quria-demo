@@ -249,8 +249,8 @@ export function decomposeByRule(rawRequirement: string): DecomposeResult {
   const fuzzyWords = ["更深入", "越多越好", "尽快", "高端", "大概", "差不多", "尽量", "可能", "也许"];
   const foundFuzzy = fuzzyWords.filter((w) => lowerText.includes(w));
 
-  // 注：recommendedDuration 在原代码中计算但未放入结果，保持原行为（不输出）。
-  void recommendedDuration;
+  // recommendedDuration 是「每场访谈的建议时长」，已计算好，纳入结果输出展示。
+  const interviewDuration = recommendedDuration;
 
   // ===== 10. 组装结果 =====
 
@@ -262,6 +262,7 @@ export function decomposeByRule(rawRequirement: string): DecomposeResult {
     depth,
     sampleSize,
     duration,
+    interviewDuration,
     strategy,
     deliverables,
     conflicts,

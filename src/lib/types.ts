@@ -45,6 +45,8 @@ export interface FollowupRequest {
   mode: Mode;
   /** 选择的设备类型。 */
   device: Device;
+  /** 界面语言（可选），决定 AI 与本地兜底的追问语言。 */
+  lang?: import("@/i18n").Language;
 }
 
 /**
@@ -79,6 +81,8 @@ export interface ChatMessage {
 export interface ChatRequest {
   /** 对话的消息列表（按时间顺序）。 */
   messages: ChatMessage[];
+  /** 界面语言（可选），决定 AI 回复语言。 */
+  lang?: import("@/i18n").Language;
 }
 
 /**
@@ -112,6 +116,8 @@ export interface DecomposeResult {
   sampleSize: string;
   /** 预计要花多长时间。 */
   duration: string;
+  /** 每场访谈的建议时长（如「20-30分钟/人」），与 duration（项目总周期）区分。 */
+  interviewDuration: string;
   /** 访谈时用的追问策略。 */
   strategy: string;
   /** 交付物清单：最后要产出哪些东西。 */

@@ -69,6 +69,7 @@ describe("ai-client fallback behavior", () => {
       depth: "L3 深度访谈",
       sampleSize: "10人",
       duration: "7天",
+      interviewDuration: "45-60分钟/人",
       strategy: "场景还原",
       deliverables: ["纪要"],
       conflicts: [],
@@ -88,7 +89,7 @@ describe("ai-client fallback behavior", () => {
       expect.objectContaining({
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answer: "回答", mode: "精简", device: "移动端" }),
+        body: JSON.stringify({ answer: "回答", mode: "精简", device: "移动端", lang: "zh-CN" }),
       })
     );
   });

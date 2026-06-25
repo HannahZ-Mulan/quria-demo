@@ -14,12 +14,26 @@ import type {
   ChatMessage,
   DecomposeResult,
 } from "./types";
+import type { Language } from "@/i18n";
 import { generateFollowupByRule } from "./rules-followup";
 import { decomposeByRule, generateTrdByRule } from "./rules-decompose";
 
 // 客户端超时时间：比服务端的 30 秒超时长一点（35 秒）。
 // 这样能让服务端自己返回 504 错误，而不是客户端先因为超时取消请求。
 const CLIENT_TIMEOUT_MS = 35_000;
+
+/**
+ * 计算「压缩率」的参考口径：取 PC + 深度模式下、与回答长度对应的最大字数上限。
+ * 与 rules-followup 里「深度模式」的语义对齐——压缩率表达「比深度版压缩了多少」。
+ * （深度模式字数 = 基础上限 × 1.3，见 followup/route.ts 的 maxLengthFor。）
+ *
+ * @param answerLength - 回答字数
+ * @returns 深度模式（PC）下的字数上限
+ */
+function deepReferenceLength(answerLength: number): number {
+  const base = answerLength <= 20 ? 30 : answerLength <= 100 ? 45 : 60;
+  return Math.floor(base * 1.3);
+}
 
 /**
  * 向指定的接口发送一个 POST 请求，请求体是 JSON。
@@ -62,31 +76,33 @@ async function postJSON<T>(url: string, payload: unknown): Promise<T> {
  * @param answer - 受访者输入的回答
  * @param mode - 追问的详细程度（精简/标准/深度）
  * @param device - 设备类型（PC/移动端）
+ * @param lang - 界面语言（默认 zh-CN），决定追问与兜底语言
  * @returns `{ data: 追问结果, usedAI: 是否用了 AI }`
  */
 export async function callFollowupAI(
   answer: string,
   mode: Mode,
-  device: Device
+  device: Device,
+  lang: Language = "zh-CN"
 ): Promise<{ data: QuestionResult; usedAI: boolean }> {
   try {
     const res = await postJSON<{
       question: string;
       strategy: string;
       usedAI: boolean;
-    }>("/api/project1/followup", { answer, mode, device });
+    }>("/api/project1/followup", { answer, mode, device, lang });
     return {
       data: {
         question: res.question,
         wordCount: res.question.length,
         strategy: res.strategy,
-        originalLength: res.question.length,
+        originalLength: deepReferenceLength(answer.trim().length),
       },
       usedAI: res.usedAI,
     };
   } catch {
     // 静默兜底：AI 不可用，改用本地基于关键词的规则生成
-    return { data: generateFollowupByRule(answer, mode, device), usedAI: false };
+    return { data: generateFollowupByRule(answer, mode, device, lang), usedAI: false };
   }
 }
 
@@ -96,15 +112,17 @@ export async function callFollowupAI(
  * 如果 AI 不可用，就用最后一条用户消息临时合成一句追问，让对话能继续。
  *
  * @param messages - 完整的对话历史（用户和 AI 来回的消息）
+ * @param lang - 界面语言（默认 zh-CN），决定兜底追问语言
  * @returns `{ reply: AI 回复内容, usedAI: 是否用了 AI }`
  */
 export async function callChatAI(
-  messages: ChatMessage[]
+  messages: ChatMessage[],
+  lang: Language = "zh-CN"
 ): Promise<{ reply: string; usedAI: boolean }> {
   try {
     const res = await postJSON<{ reply: string; usedAI: boolean }>(
       "/api/project1/chat",
-      { messages }
+      { messages, lang }
     );
     return { reply: res.reply, usedAI: res.usedAI };
   } catch {
@@ -113,7 +131,8 @@ export async function callChatAI(
     const fallback = generateFollowupByRule(
       lastUser?.content ?? "",
       "标准",
-      "PC"
+      "PC",
+      lang
     );
     return { reply: fallback.question, usedAI: false };
   }

@@ -35,6 +35,12 @@ describe("decomposeByRule", () => {
     expect(decomposeByRule("快速筛查一下情况").depth).toBe("L1 快速筛查");
   });
 
+  it("exposes recommendedDuration as interviewDuration, scaled by depth", () => {
+    expect(decomposeByRule("深入挖掘心理动机").interviewDuration).toBe("45-60分钟/人");
+    expect(decomposeByRule("了解用户需求").interviewDuration).toBe("20-30分钟/人");
+    expect(decomposeByRule("快速筛查一下").interviewDuration).toBe("10-15分钟/人");
+  });
+
   it("extracts explicit numeric sample size", () => {
     const r = decomposeByRule("访谈 15 人了解需求");
     expect(r.sampleSize).toContain("15人");
@@ -81,6 +87,7 @@ describe("generateTrdByRule", () => {
     depth: "L3 深度访谈",
     sampleSize: "20人（适合定性研究）",
     duration: "14天（合理，可执行）",
+    interviewDuration: "45-60分钟/人",
     strategy: "场景还原 + 痛点挖掘",
     deliverables: ["访谈纪要", "核心洞察"],
     conflicts: [],
