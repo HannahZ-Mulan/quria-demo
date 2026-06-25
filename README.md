@@ -55,6 +55,15 @@
 - 粵語 (yue)
 - 日本語 (ja)
 
+## 产品文档
+
+面试准备的完整产品文档：
+
+- 📄 [PRD - 项目 1：AI 追问长度动态优化](https://github.com/HannahZ-Mulan/quria-demo/blob/main/PRD_AI_追问长度动态优化方案.md)
+- 📄 [SRS - 项目 1：AI 追问长度动态优化系统](https://github.com/HannahZ-Mulan/quria-demo/blob/main/SRS_AI_追问长度动态优化系统.md)
+- 📄 [PRD - 项目 3：客户需求标准化拆解](https://github.com/HannahZ-Mulan/quria-demo/blob/main/PRD_客户研究需求标准化拆解模板.md)
+- 📄 [SRS - 项目 3：客户需求标准化拆解系统](https://github.com/HannahZ-Mulan/quria-demo/blob/main/SRS_客户研究需求标准化拆解系统.md)
+
 ## 技术栈
 
 - **框架**：Next.js 16 + React + TypeScript
