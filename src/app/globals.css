@@ -130,13 +130,14 @@
 }
 
 /* ============================================================
-   方案 B · 3D 透视跟随 —— 深空科技背景与全局工具样式
+   深空科技风全局底盘（首页方案 B + project1 控制台 + project3 对话流共用）
    ============================================================ */
 
-/* 首页深空背景：径向辉光 + 极细网格，营造科技立体氛围 */
-.aurora-stage {
+/* 可复用的深空背景基类：径向辉光 + 极细网格。
+   首页 .aurora-stage 与内页 .deep-space 都基于此。 */
+.aurora-stage,
+.deep-space {
   position: relative;
-  min-height: 100vh;
   background:
     radial-gradient(60vw 60vw at 18% 12%, rgba(124, 92, 255, 0.22), transparent 60%),
     radial-gradient(50vw 50vw at 88% 82%, rgba(34, 211, 238, 0.18), transparent 60%),
@@ -144,9 +145,11 @@
     #07091a;
   overflow: hidden;
 }
+.aurora-stage { min-height: 100vh; }
 
 /* 极细网格叠层（半透明，纯装饰） */
-.aurora-stage::before {
+.aurora-stage::before,
+.deep-space::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -172,7 +175,8 @@
   0%, 100% { transform: translate3d(0, 0, 0); }
   50% { transform: translate3d(2%, -2%, 0); }
 }
-.aurora-stage::after {
+.aurora-stage::after,
+.deep-space::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -187,7 +191,85 @@
   pointer-events: none;
 }
 
+/* ---- 深空风通用组件类（控制台 + 对话流复用） ---- */
+
+/* 玻璃面板：半透明 + 模糊 + 细边框 */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+}
+
+/* 章节小标题（深空风） */
+.section-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9aa0b4;
+}
+
+/* 流光按钮：hover 时一道光从左扫到右 */
+.shimmer-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(120deg, #7c5cff, #22d3ee);
+  color: #06121a;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+.shimmer-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transition: left 0.6s ease;
+}
+.shimmer-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px -10px rgba(124, 92, 255, 0.6);
+}
+.shimmer-btn:hover::after { left: 120%; }
+
+/* 数字仪表大数字渐变 */
+.stat-number {
+  background: linear-gradient(120deg, #22d3ee, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 控制台：结果弹出动画 */
+@keyframes cockpit-pop {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-cockpit-pop { animation: cockpit-pop 0.5s ease both; }
+
+/* 对话流：气泡滑入 */
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-bubble-in { animation: bubble-in 0.4s ease both; }
+
+/* 对话流：AI 打字中三点跳动 */
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+.typing-dot {
+  animation: typing-bounce 1.2s infinite;
+}
+
 /* 尊重用户的「减少动态」偏好 */
 @media (prefers-reduced-motion: reduce) {
-  .aurora-stage::after { animation: none; }
+  .aurora-stage::after,
+  .deep-space::after,
+  .shimmer-btn::after,
+  .animate-cockpit-pop,
+  .animate-bubble-in,
+  .typing-dot { animation: none; transition: none; }
 }
