@@ -45,6 +45,18 @@ const DOCS = [
   },
 ] as const;
 
+/**
+ * Tab 样式：深空风磨砂胶囊。
+ * - 项目 1 系用青色高亮（呼应首页 project1 卡片）；
+ * - 项目 3 系用紫色高亮（呼应首页 project3 卡片）。
+ * 用 data-active: 覆盖 shadcn Tabs 默认的浅色令牌（bg-background 等），
+ * 避免在深空背景下出现刺眼的白底。
+ */
+const tabBase =
+  "flex h-auto flex-col gap-0.5 rounded-xl border border-transparent px-3 py-2.5 text-gray-400 after:hidden hover:bg-white/5 hover:text-white";
+const tabCyan = `${tabBase} data-active:border-cyan-400/30 data-active:bg-cyan-400/15 data-active:text-cyan-100 data-active:shadow-[0_4px_18px_-6px_rgba(34,211,238,0.45)]`;
+const tabViolet = `${tabBase} data-active:border-violet-400/30 data-active:bg-violet-400/15 data-active:text-violet-100 data-active:shadow-[0_4px_18px_-6px_rgba(167,139,250,0.45)]`;
+
 /** 单个文档视图：负责 fetch + 渲染 + 加载/错误态。 */
 function DocView({ path, loadingLabel, errorLabel, githubLabel }: {
   path: string;
@@ -159,21 +171,25 @@ export default function DocsPage() {
           </a>
         </div>
 
-        {/* 4 个模块 Tab 切换 */}
+        {/* 4 个模块 Tab 切换：磨砂胶囊容器，Tab 之间留间距，双行文案 + 项目配色高亮 */}
         <Tabs defaultValue="p1-prd" className="w-full">
           <div className="flex justify-center">
-            <TabsList className="flex-wrap">
-              <TabsTrigger value="p1-prd">
-                {t("project1_title").split("：")[1] ?? t("project1_title")} · PRD
+            <TabsList className="flex w-full justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04]! p-2 backdrop-blur-sm sm:w-auto sm:flex-nowrap">
+              <TabsTrigger value="p1-prd" className={tabCyan}>
+                <span className="text-[10px] font-bold tracking-[0.16em] text-cyan-300/70 uppercase">PRD</span>
+                <span className="text-xs leading-tight">{t("project1_title").split("：")[1] ?? t("project1_title")}</span>
               </TabsTrigger>
-              <TabsTrigger value="p1-srs">
-                {t("project1_title").split("：")[1] ?? t("project1_title")} · SRS
+              <TabsTrigger value="p1-srs" className={tabCyan}>
+                <span className="text-[10px] font-bold tracking-[0.16em] text-cyan-300/70 uppercase">SRS</span>
+                <span className="text-xs leading-tight">{t("project1_title").split("：")[1] ?? t("project1_title")}</span>
               </TabsTrigger>
-              <TabsTrigger value="p3-prd">
-                {t("project3_title").split("：")[1] ?? t("project3_title")} · PRD
+              <TabsTrigger value="p3-prd" className={tabViolet}>
+                <span className="text-[10px] font-bold tracking-[0.16em] text-violet-300/70 uppercase">PRD</span>
+                <span className="text-xs leading-tight">{t("project3_title").split("：")[1] ?? t("project3_title")}</span>
               </TabsTrigger>
-              <TabsTrigger value="p3-srs">
-                {t("project3_title").split("：")[1] ?? t("project3_title")} · SRS
+              <TabsTrigger value="p3-srs" className={tabViolet}>
+                <span className="text-[10px] font-bold tracking-[0.16em] text-violet-300/70 uppercase">SRS</span>
+                <span className="text-xs leading-tight">{t("project3_title").split("：")[1] ?? t("project3_title")}</span>
               </TabsTrigger>
             </TabsList>
           </div>
