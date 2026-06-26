@@ -42,3 +42,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 个人面试准备材料（私有，不上传 GitHub）
+docs/memos/project1-demo-script.md
+docs/memos/optimization-suggestions.md
