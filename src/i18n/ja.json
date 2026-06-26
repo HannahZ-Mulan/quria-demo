@@ -74,6 +74,9 @@
   "docs_card_title": "製品ドキュメント",
   "docs_card_desc": "完全なPRDおよびSRS文書。ユーザーストーリー、受け入れ基準、技術アーキテクチャを含みます。",
   "view_docs": "ドキュメントを見る",
+  "view_on_github": "GitHub で見る",
+  "docs_loading": "ドキュメントを読み込み中…",
+  "docs_error": "ドキュメントの読み込みに失敗しました。再試行するか GitHub でご確認ください。",
   "home_footer": "Quria製品の実際の体験に基づく設計 · 2026",
   "no_conflict": "要件は明確、矛盾なし",
   "copy_done": "コピーしました",
@@ -93,7 +96,7 @@
   "rhythm_status_good": "良好",
   "rhythm_status_warn": "注意",
   "rhythm_status_risk": "要警戒",
-  "rhythm_suggestion": "⚠️ 回答者が疲れている可能性があります。追質問を短くし、軽い話題に切り替えることをお勧めします。",
+  "rhythm_suggestion": "⚠️ 回答者が抵抗している可能性があります。AIは現在の話題を置き、軽い質問に切り替えて信頼を再構築しています。",
   "rhythm_insufficient": "2ターン以上で分析を開始します",
   "rhythm_turns_unit": "ターン",
   "rhythm_chart_label": "各ターンの回答文字数（多いほど参加度が高い）"

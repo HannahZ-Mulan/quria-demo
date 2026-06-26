@@ -74,6 +74,9 @@
   "docs_card_title": "Documentação do Produto",
   "docs_card_desc": "Documentos PRD e SRS completos, incluindo histórias de usuário, critérios de aceitação e arquitetura técnica.",
   "view_docs": "Ver Documentação",
+  "view_on_github": "Ver no GitHub",
+  "docs_loading": "Carregando documento…",
+  "docs_error": "Falha ao carregar o documento. Tente novamente ou veja no GitHub.",
   "home_footer": "Projetado a partir da experiência prática com o produto Quria · 2026",
   "no_conflict": "Requisitos claros, sem conflitos",
   "copy_done": "Copiado",
@@ -93,7 +96,7 @@
   "rhythm_status_good": "Bom",
   "rhythm_status_warn": "Atenção",
   "rhythm_status_risk": "Alerta",
-  "rhythm_suggestion": "⚠️ O entrevistado pode estar fadigado — considere encurtar as perguntas de aprofundamento ou mudar para um tópico mais leve.",
+  "rhythm_suggestion": "⚠️ O entrevistado parece resistente — a IA deixou o tópico atual e mudou para uma pergunta simples para reconstruir rapport.",
   "rhythm_insufficient": "A análise começa após 2+ turnos",
   "rhythm_turns_unit": "turnos",
   "rhythm_chart_label": "Tamanho da resposta por turno (maior = mais engajado)"

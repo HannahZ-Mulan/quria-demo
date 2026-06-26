@@ -74,6 +74,9 @@
   "docs_card_title": "產品文件",
   "docs_card_desc": "完整的產品需求文件和軟體需求規格書，包含使用者故事、驗收標準、技術架構。",
   "view_docs": "查看文件",
+  "view_on_github": "在 GitHub 查看",
+  "docs_loading": "文件載入中…",
+  "docs_error": "文件載入失敗，請稍後重試或前往 GitHub 查看。",
   "home_footer": "基於對 Quria 產品的實際體驗設計 · 2026",
   "no_conflict": "需求清晰，無衝突",
   "copy_done": "已複製",
@@ -93,7 +96,7 @@
   "rhythm_status_good": "良好",
   "rhythm_status_warn": "注意",
   "rhythm_status_risk": "警惕",
-  "rhythm_suggestion": "⚠️ 受訪者可能疲勞，建議縮短追問、切換輕鬆話題",
+  "rhythm_suggestion": "⚠️ 受訪者可能牴觸，AI 已放下當前話題、換輕鬆問題重建信任",
   "rhythm_insufficient": "對話輪數 ≥ 2 後開始分析",
   "rhythm_turns_unit": "輪",
   "rhythm_chart_label": "每輪回答字數（越高參與度越好）"

@@ -74,6 +74,9 @@
   "docs_card_title": "תיעוד מוצר",
   "docs_card_desc": "מסמכי PRD ו-SRS מלאים, כולל סיפורי משתמש, קריטריוני קבלה וארכיטקטורה טכנית.",
   "view_docs": "צפה בתיעוד",
+  "view_on_github": "צפה ב-GitHub",
+  "docs_loading": "טוען מסמך…",
+  "docs_error": "טעינת המסמך נכשלה. נסה שוב או צפה בו ב-GitHub.",
   "home_footer": "עוצב מתוך ניסיון מעשי עם מוצר Quria · 2026",
   "no_conflict": "דרישות ברורות, ללא התנגשויות",
   "copy_done": "הועתק",
@@ -93,7 +96,7 @@
   "rhythm_status_good": "טוב",
   "rhythm_status_warn": "שים לב",
   "rhythm_status_risk": "התראה",
-  "rhythm_suggestion": "⚠ ייתכן שהמרואיין עייף — מומלץ לקצר את שאלות ההמשך או לעבור לנושא קל יותר.",
+  "rhythm_suggestion": "⚠ ייתכן שהמרואיין מתנגד — ה-AI הניח את הנושא הנוכחי ועבר לשאלה פשוטה כדי לבנות מחדש את האמון.",
   "rhythm_insufficient": "הניתוח מתחיל אחרי 2+ תורות",
   "rhythm_turns_unit": "תורות",
   "rhythm_chart_label": "אורך תשובה לכל תור (גבוה יותר = מעורבות רבה יותר)"

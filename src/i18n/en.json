@@ -74,6 +74,9 @@
   "docs_card_title": "Product Docs",
   "docs_card_desc": "Complete PRD and SRS documents, including user stories, acceptance criteria, and technical architecture.",
   "view_docs": "View Docs",
+  "view_on_github": "View on GitHub",
+  "docs_loading": "Loading document…",
+  "docs_error": "Failed to load the document. Please retry or view it on GitHub.",
   "home_footer": "Designed from hands-on Quria product experience · 2026",
   "no_conflict": "Clear requirements, no conflicts",
   "copy_done": "Copied",
@@ -93,7 +96,7 @@
   "rhythm_status_good": "Good",
   "rhythm_status_warn": "Watch",
   "rhythm_status_risk": "Alert",
-  "rhythm_suggestion": "⚠️ The respondent may be fatigued — consider shortening follow-ups or switching to a lighter topic.",
+  "rhythm_suggestion": "⚠️ The respondent seems resistant — the AI has dropped the current topic and switched to an easy question to rebuild rapport.",
   "rhythm_insufficient": "Analysis starts after 2+ turns",
   "rhythm_turns_unit": "turns",
   "rhythm_chart_label": "Answer length per turn (higher = more engaged)"

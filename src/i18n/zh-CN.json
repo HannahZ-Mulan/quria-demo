@@ -74,6 +74,9 @@
   "docs_card_title": "产品文档",
   "docs_card_desc": "完整的产品需求文档和软件需求规格说明书，包含用户故事、验收标准、技术架构。",
   "view_docs": "查看文档",
+  "view_on_github": "在 GitHub 查看",
+  "docs_loading": "文档加载中…",
+  "docs_error": "文档加载失败，请稍后重试或前往 GitHub 查看。",
   "home_footer": "基于对 Quria 产品的实际体验设计 · 2026",
   "no_conflict": "需求清晰，无冲突",
   "copy_done": "已复制",
@@ -93,7 +96,7 @@
   "rhythm_status_good": "良好",
   "rhythm_status_warn": "注意",
   "rhythm_status_risk": "警惕",
-  "rhythm_suggestion": "⚠️ 受访者可能疲劳，建议缩短追问、切换轻松话题",
+  "rhythm_suggestion": "⚠️ 受访者可能抵触，AI 已放下当前话题、换轻松问题重建信任",
   "rhythm_insufficient": "对话轮数 ≥ 2 后开始分析",
   "rhythm_turns_unit": "轮",
   "rhythm_chart_label": "每轮回答字数（越高参与度越好）"

@@ -92,19 +92,26 @@ export default function Home() {
                   {t("docs_card_desc")}
                 </p>
               </div>
-              <a
-                href="https://github.com/HannahZ-Mulan/quria-demo#产品文档"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block mt-6"
-              >
-                <Button
-                  variant="outline"
-                  className="w-full bg-pink-400/15 text-pink-300 border-pink-400/40 hover:bg-pink-400 hover:text-slate-950 transition-all"
+              <div className="mt-6 space-y-2">
+                <Link href="/docs" className="block">
+                  <Button className="w-full bg-pink-400/15 text-pink-300 border border-pink-400/40 hover:bg-pink-400 hover:text-slate-950 transition-all">
+                    {t("view_docs")} →
+                  </Button>
+                </Link>
+                <a
+                  href="https://github.com/HannahZ-Mulan/quria-demo#产品文档"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
                 >
-                  {t("view_docs")} →
-                </Button>
-              </a>
+                  <Button
+                    variant="outline"
+                    className="w-full bg-transparent text-gray-400 border-white/15 hover:bg-white/5 hover:text-white transition-all"
+                  >
+                    {t("view_on_github")} ↗
+                  </Button>
+                </a>
+              </div>
             </div>
           </TiltCard>
         </div>
