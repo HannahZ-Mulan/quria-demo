@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { decomposeByRule, generateTrdByRule } from "./rules-decompose";
+import {
+  decomposeByRule,
+  generateTrdByRule,
+  calcClarityScore,
+  parseDurationDays,
+  buildGanttPhases,
+  deriveRisks,
+} from "./rules-decompose";
 import type { DecomposeResult } from "./types";
 
 /**
@@ -75,6 +82,161 @@ describe("decomposeByRule", () => {
     expect(Array.isArray(r.deliverables)).toBe(true);
     expect(Array.isArray(r.conflicts)).toBe(true);
     expect(Array.isArray(r.fuzzyMarks)).toBe(true);
+  });
+
+  it("fills clarityScore (0-100) and clarityNotes on every result", () => {
+    const r = decomposeByRule("了解需求");
+    expect(r.clarityScore).toBeGreaterThanOrEqual(0);
+    expect(r.clarityScore).toBeLessThanOrEqual(100);
+    expect(Array.isArray(r.clarityNotes)).toBe(true);
+  });
+});
+
+describe("calcClarityScore", () => {
+  /** 一个近乎「满分」的需求：具体人群、明确目标、量化样本与周期、无模糊词、无冲突。 */
+  const clear: DecomposeResult = {
+    researchGoal: "了解购买决策",
+    targetAudience: "25-35岁妈妈",
+    researchScene: "购买决策研究",
+    researchType: "定性研究",
+    depth: "L2 探索访谈",
+    sampleSize: "20人（适合定性研究）",
+    duration: "14天（合理，可执行）",
+    interviewDuration: "20-30分钟/人",
+    strategy: "决策旅程",
+    deliverables: ["纪要"],
+    conflicts: [],
+    fuzzyMarks: [],
+  };
+
+  it("scores 100 for a fully quantified, conflict-free requirement", () => {
+    const { score, notes } = calcClarityScore(clear, "20 人 14 天");
+    expect(score).toBe(100);
+    expect(notes).toHaveLength(0);
+  });
+
+  it("deducts 8 per fuzzy word", () => {
+    const r = { ...clear, fuzzyMarks: ["尽快", "大概"] };
+    expect(calcClarityScore(r, "尽快 大概").score).toBe(100 - 8 * 2);
+  });
+
+  it("deducts 10 each for missing audience and goal", () => {
+    const r = { ...clear, targetAudience: "未明确", researchGoal: "未明确" };
+    expect(calcClarityScore(r, "anything").score).toBe(100 - 10 - 10);
+  });
+
+  it("deducts 10 each for unquantified sample size and duration", () => {
+    const r = { ...clear, sampleSize: "未指定", duration: "建议 2-3 周" };
+    // 原文无数字 → 周期也判为未量化
+    expect(calcClarityScore(r, "没有数字的文字").score).toBe(100 - 10 - 10);
+  });
+
+  it("deducts 15 per conflict", () => {
+    const r = {
+      ...clear,
+      conflicts: ["⚠️ 大样本量 + 深度访谈 + 短周期", "⚠️ 目标人群未明确"],
+    };
+    expect(calcClarityScore(r, "20 人 14 天").score).toBe(100 - 15 * 2);
+  });
+
+  it("clamps the lower bound at 0 (never negative)", () => {
+    const r: DecomposeResult = {
+      ...clear,
+      fuzzyMarks: ["尽快", "大概", "越多越好", "高端", "尽量", "可能", "也许", "差不多"],
+      conflicts: ["⚠️ a", "⚠️ b", "⚠️ c", "⚠️ d", "⚠️ e", "⚠️ f", "⚠️ g"],
+      targetAudience: "未明确",
+      researchGoal: "未明确",
+      sampleSize: "未指定",
+      duration: "未指定",
+    };
+    expect(calcClarityScore(r, "无数字原文").score).toBe(0);
+  });
+
+  it("keeps notes in sync with the deductions (one note per penalty)", () => {
+    const r = { ...clear, fuzzyMarks: ["尽快"], conflicts: ["⚠️ x"] };
+    const { notes } = calcClarityScore(r, "20 人 14 天");
+    expect(notes.filter((n) => n.includes("尽快"))).toHaveLength(1);
+    expect(notes.filter((n) => n.includes("需求冲突"))).toHaveLength(1);
+  });
+});
+
+describe("parseDurationDays", () => {
+  it("parses days as-is", () => {
+    expect(parseDurationDays("14天（合理，可执行）")).toBe(14);
+    expect(parseDurationDays("7 天内完成")).toBe(7);
+  });
+
+  it("converts weeks to days (×7)", () => {
+    expect(parseDurationDays("3 周")).toBe(21);
+    // 「4-6 周」取离单位最近的数字 6 → 42（按偏大值规划更稳）
+    expect(parseDurationDays("建议 4-6 周")).toBe(42);
+  });
+
+  it("converts months to days (×30)", () => {
+    expect(parseDurationDays("2个月")).toBe(60);
+  });
+
+  it("falls back to a default when no unit is found", () => {
+    expect(parseDurationDays("尽快交付")).toBe(21);
+    expect(parseDurationDays("未指定")).toBe(21);
+  });
+});
+
+describe("buildGanttPhases", () => {
+  it("splits the total duration into 4 phases with the right keys", () => {
+    const phases = buildGanttPhases("20天");
+    expect(phases).toHaveLength(4);
+    expect(phases.map((p) => p.key)).toEqual([
+      "phase_recruit",
+      "phase_execute",
+      "phase_analyze",
+      "phase_deliver",
+    ]);
+  });
+
+  it("gives every phase at least 1 day", () => {
+    const phases = buildGanttPhases("2天");
+    expect(phases.every((p) => p.days >= 1)).toBe(true);
+  });
+
+  it("allocates execution the largest share (~40%)", () => {
+    const phases = buildGanttPhases("100天");
+    const exec = phases.find((p) => p.key === "phase_execute")!.days;
+    expect(exec).toBeGreaterThanOrEqual(38);
+    expect(exec).toBeLessThanOrEqual(42);
+  });
+});
+
+describe("deriveRisks", () => {
+  it("returns no risks for a clean result", () => {
+    expect(deriveRisks({ conflicts: [], fuzzyMarks: [] })).toHaveLength(0);
+  });
+
+  it("maps conflicts to high-impact / high-probability risks", () => {
+    const risks = deriveRisks({
+      conflicts: ["⚠️ 大样本量 + 深度访谈 + 短周期"],
+      fuzzyMarks: [],
+    });
+    expect(risks).toHaveLength(1);
+    expect(risks[0].impact).toBe("high");
+    expect(risks[0].probability).toBe("high");
+  });
+
+  it("treats missing-info conflicts (未明确/不清晰) as medium impact", () => {
+    const risks = deriveRisks({
+      conflicts: ["⚠️ 目标人群未明确", "⚠️ 研究目标不清晰"],
+      fuzzyMarks: [],
+    });
+    expect(risks.every((r) => r.impact === "medium")).toBe(true);
+  });
+
+  it("escalates fuzzy-word probability when there are 3+", () => {
+    const many = deriveRisks({ conflicts: [], fuzzyMarks: ["尽快", "大概", "越多越好"] });
+    expect(many[0].impact).toBe("medium");
+    expect(many[0].probability).toBe("high");
+
+    const few = deriveRisks({ conflicts: [], fuzzyMarks: ["尽快"] });
+    expect(few[0].probability).toBe("medium");
   });
 });
 

@@ -6,6 +6,7 @@ import { useI18n } from "@/i18n";
 import { Textarea } from "@/components/ui/textarea";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { callDecomposeAI, callTrdAI } from "@/lib/ai-client";
+import { buildGanttPhases, deriveRisks } from "@/lib/rules-decompose";
 import type { DecomposeResult } from "@/lib/types";
 
 /**
@@ -90,6 +91,7 @@ export default function Project3Demo() {
         </>,
       );
       pushCard(<ResultCard r={decomposed} />);
+      pushCard(<ClarityScoreCard r={decomposed} />);
       setStep("check");
     } finally {
       setLoading(null);
@@ -125,7 +127,7 @@ export default function Project3Demo() {
       const { trd, usedAI: ai } = await callTrdAI(result);
       setUsedAI(ai);
       pushBot(`📝 ${t("p3_trd_intro")}`);
-      pushCard(<TrdCard text={trd} />);
+      pushCard(<TrdCard text={trd} r={result} />);
     } finally {
       setLoading(null);
     }
@@ -357,6 +359,76 @@ function ResultCard({ r }: { r: DecomposeResult }) {
   );
 }
 
+/* ---- 需求清晰度评分卡（0-100 仪表 + 分段进度条 + 扣分明细） ---- */
+function ClarityScoreCard({ r }: { r: DecomposeResult }) {
+  const { t } = useI18n();
+  // 兼容旧数据：缺省分数按 0 处理
+  const score = r.clarityScore ?? 0;
+  const notes = r.clarityNotes ?? [];
+
+  // 分段着色 + 等级文案：清晰 / 待澄清 / 模糊
+  const level = score >= 71 ? "clear" : score >= 41 ? "fair" : "vague";
+  const tone: Record<string, { bar: string; num: string; label: string; chip: string }> = {
+    clear: {
+      bar: "bg-gradient-to-r from-emerald-400 to-cyan-400",
+      num: "from-emerald-300 to-cyan-300",
+      label: t("clarity_clear"),
+      chip: "border-emerald-400/40 bg-emerald-400/10 text-emerald-200",
+    },
+    fair: {
+      bar: "bg-gradient-to-r from-amber-400 to-orange-400",
+      num: "from-amber-300 to-orange-300",
+      label: t("clarity_fair"),
+      chip: "border-amber-400/40 bg-amber-400/10 text-amber-200",
+    },
+    vague: {
+      bar: "bg-gradient-to-r from-rose-500 to-pink-500",
+      num: "from-rose-300 to-pink-300",
+      label: t("clarity_vague"),
+      chip: "border-rose-400/40 bg-rose-400/10 text-rose-200",
+    },
+  };
+  const cur = tone[level];
+
+  return (
+    <div className="glass-panel mx-auto max-w-[88%] space-y-3 p-4">
+      <div className="flex items-center justify-between">
+        <div className="section-label">{t("clarity_title")}</div>
+        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${cur.chip}`}>
+          {cur.label}
+        </span>
+      </div>
+
+      {/* 大号分数 + 进度条 */}
+      <div className="flex items-end gap-3">
+        <span
+          className={`stat-number bg-gradient-to-br ${cur.num} bg-clip-text text-4xl font-bold leading-none text-transparent`}
+        >
+          {score}
+        </span>
+        <span className="mb-0.5 text-xs text-gray-500">/ 100</span>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+        <div className={`h-full rounded-full ${cur.bar} transition-all`} style={{ width: `${score}%` }} />
+      </div>
+
+      {/* 扣分明细：解释分数来源（无扣分项时隐藏） */}
+      {notes.length > 0 && (
+        <div className="space-y-1 pt-1">
+          <div className="text-xs font-medium text-gray-400">{t("clarity_breakdown")}</div>
+          <ul className="space-y-1">
+            {notes.map((n, i) => (
+              <li key={i} className="rounded-md bg-white/[0.03] px-2.5 py-1 text-[11px] text-gray-300">
+                • {n}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ---- 质量检查卡片 ---- */
 function QualityCard({ r }: { r: DecomposeResult }) {
   const { t } = useI18n();
@@ -409,7 +481,7 @@ function QualityCard({ r }: { r: DecomposeResult }) {
 }
 
 /* ---- TRD 预览卡片 ---- */
-function TrdCard({ text }: { text: string }) {
+function TrdCard({ text, r }: { text: string; r: DecomposeResult }) {
   const { t } = useI18n();
   // 复制按钮的反馈状态：复制成功后短暂显示「已复制」
   const [copied, setCopied] = useState(false);
@@ -449,6 +521,9 @@ function TrdCard({ text }: { text: string }) {
       <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-slate-950/70 p-4 font-mono text-xs text-gray-200">
         {text}
       </pre>
+      {/* 交付增强：项目时间线 + 风险矩阵 */}
+      <GanttTimeline duration={r.duration} />
+      <RiskMatrix r={r} />
       <div className="flex flex-wrap gap-2">
         <button
           onClick={handleExportMd}
@@ -469,6 +544,145 @@ function TrdCard({ text }: { text: string }) {
           {copied ? `✅ ${t("copy_done")}` : t("sync_jira")}
         </button>
       </div>
+    </div>
+  );
+}
+
+/* ---- 项目时间线（Gantt 风格横向条） ---- */
+function GanttTimeline({ duration }: { duration: string }) {
+  const { t } = useI18n();
+  const phases = buildGanttPhases(duration);
+  const totalDays = phases.reduce((s, p) => s + p.days, 0);
+
+  // 4 个阶段对应色板
+  const colorBar: Record<string, string> = {
+    cyan: "bg-cyan-400",
+    violet: "bg-violet-400",
+    pink: "bg-pink-400",
+    amber: "bg-amber-400",
+  };
+  const colorText: Record<string, string> = {
+    cyan: "text-cyan-300",
+    violet: "text-violet-300",
+    pink: "text-pink-300",
+    amber: "text-amber-300",
+  };
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="section-label !mb-0">{t("gantt_title")}</span>
+        <span className="text-[11px] text-gray-500">{t("phase_days").replace("{n}", String(totalDays))}</span>
+      </div>
+      {/* 横向时间条：各阶段按天数占比排列 */}
+      <div className="flex h-6 w-full overflow-hidden rounded-md bg-white/5">
+        {phases.map((p, i) => (
+          <div
+            key={i}
+            className={`${colorBar[p.color]} flex items-center justify-center transition-all hover:brightness-125`}
+            style={{ width: `${(p.days / totalDays) * 100}%` }}
+            title={`${t(p.key)}：${p.days} ${t("phase_days").replace("{n}", "")}`}
+          />
+        ))}
+      </div>
+      {/* 图例：阶段名 + 天数 */}
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+        {phases.map((p, i) => (
+          <div key={i} className="flex items-center gap-1.5 text-[11px]">
+            <span className={`inline-block h-2 w-2 rounded-sm ${colorBar[p.color]}`} />
+            <span className="text-gray-300">{t(p.key)}</span>
+            <span className={colorText[p.color]}>{p.days}d</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---- 风险矩阵（影响 × 概率） ---- */
+function RiskMatrix({ r }: { r: DecomposeResult }) {
+  const { t } = useI18n();
+  const risks = deriveRisks(r);
+
+  // 3×3 矩阵格子：行=影响(high→low 自上而下)，列=概率(low→high 自左而右)
+  // 格子颜色按「影响×概率」的严重度：高危红 / 中危橙 / 低危绿
+  const cellTone = (impact: string, prob: string): string => {
+    const severe = (impact === "high" ? 2 : impact === "medium" ? 1 : 0) + (prob === "high" ? 2 : prob === "medium" ? 1 : 0);
+    if (severe >= 3) return "bg-rose-500/25 border-rose-400/50";
+    if (severe >= 2) return "bg-amber-400/20 border-amber-400/40";
+    return "bg-emerald-400/15 border-emerald-400/30";
+  };
+
+  const impactRows: { key: string; level: "high" | "medium" | "low" }[] = [
+    { key: "risk_high", level: "high" },
+    { key: "risk_medium", level: "medium" },
+    { key: "risk_low", level: "low" },
+  ];
+  const probCols: { level: "low" | "medium" | "high" }[] = [
+    { level: "low" },
+    { level: "medium" },
+    { level: "high" },
+  ];
+
+  // 把风险按 impact×probability 分桶
+  const bucket = (impact: string, prob: string) =>
+    risks.filter((rk) => rk.impact === impact && rk.probability === prob);
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+      <div className="mb-2 section-label !mb-2">{t("risk_matrix_title")}</div>
+      {risks.length === 0 ? (
+        <div className="rounded-lg bg-emerald-400/10 px-3 py-3 text-center text-xs text-emerald-300">
+          ✅ {t("risk_empty")}
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          {/* 左侧：影响轴标签 */}
+          <div className="flex flex-col justify-between py-1 text-[10px] text-gray-500">
+            <span className="rotate-180 [writing-mode:vertical-rl]">{t("risk_high")} ← → {t("risk_low")}</span>
+          </div>
+          {/* 矩阵主体 */}
+          <div className="flex-1">
+            <div className="grid grid-cols-3 gap-1.5">
+              {impactRows.map((row) =>
+                probCols.map((col) => {
+                  const items = bucket(row.level, col.level);
+                  return (
+                    <div
+                      key={`${row.level}-${col.level}`}
+                      className={`relative flex min-h-[3rem] items-center justify-center rounded-md border p-1 text-center ${cellTone(row.level, col.level)}`}
+                      title={items.map((it) => it.text).join("\n")}
+                    >
+                      {items.length > 0 && (
+                        <span className="text-[11px] font-semibold leading-tight text-white/90 line-clamp-2">
+                          {items.length}
+                        </span>
+                      )}
+                    </div>
+                  );
+                }),
+              )}
+            </div>
+            {/* 底部：概率轴标签 */}
+            <div className="mt-1.5 text-center text-[10px] text-gray-500">
+              {t("risk_low")} ← → {t("risk_high")}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 风险清单（点格子看详情的替代：直接列出） */}
+      {risks.length > 0 && (
+        <ul className="mt-2 space-y-1 border-t border-white/10 pt-2">
+          {risks.map((rk, i) => (
+            <li key={i} className="flex items-start gap-1.5 text-[11px] text-gray-300">
+              <span className={`mt-0.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full ${
+                rk.impact === "high" ? "bg-rose-400" : rk.impact === "medium" ? "bg-amber-400" : "bg-emerald-400"
+              }`} />
+              <span>{rk.text}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

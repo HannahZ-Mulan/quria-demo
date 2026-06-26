@@ -4,6 +4,7 @@
 
 import { NextResponse } from "next/server";
 import { callDeepSeekJSON, DeepSeekConfigError, extractStatus } from "@/lib/deepseek";
+import { calcClarityScore } from "@/lib/rules-decompose";
 import type { DecomposeRequest, DecomposeResult } from "@/lib/types";
 
 // 原始需求文字的最大长度
@@ -96,6 +97,12 @@ export async function POST(request: Request) {
         ? result.fuzzyMarks.filter((f) => typeof f === "string")
         : [],
     };
+
+    // 清晰度评分：AI 返回的结果不含此字段，统一由本地规则引擎补算，
+    // 保证「AI 成功 / 本地兜底」两条路径下评分口径一致。
+    const { score: clarityScore, notes: clarityNotes } = calcClarityScore(normalized, rawRequirement);
+    normalized.clarityScore = clarityScore;
+    normalized.clarityNotes = clarityNotes;
 
     return NextResponse.json({ result: normalized, usedAI: true });
   } catch (err) {

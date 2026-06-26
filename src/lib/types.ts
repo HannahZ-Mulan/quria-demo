@@ -210,6 +210,43 @@ export interface DecomposeResult {
   conflicts: string[];
   /** 原文里识别到的模糊用词（比如"尽快""大概"）。 */
   fuzzyMarks: string[];
+  /**
+   * 需求清晰度评分（0-100，越高越清晰）。
+   * 由 calcClarityScore 在 fuzzyMarks/conflicts/缺失量词的基础上扣分得出，
+   * 让用户第一眼量化地看到「这份需求有多模糊」。
+   * 兼容性：缺省时按 0 处理（旧数据/旧缓存）。
+   */
+  clarityScore?: number;
+  /** 清晰度评分的逐项扣分说明，用于在卡片上解释分数来源（如「命中模糊词「尽快」 -8」）。 */
+  clarityNotes?: string[];
+}
+
+// ===== project3：TRD 交付增强（Gantt 时间线 + 风险矩阵） =====
+
+/**
+ * Gantt 时间线里的一个阶段。
+ * 由 buildGanttPhases 把项目总周期按研究流程拆成 4 段（招募/执行/分析/交付）。
+ */
+export interface GanttPhase {
+  /** 阶段 i18n key（phase_recruit / phase_execute / phase_analyze / phase_deliver）。 */
+  key: string;
+  /** 该阶段预估天数。 */
+  days: number;
+  /** 配色名，对应前端色板（青/紫/粉/琥珀）。 */
+  color: "cyan" | "violet" | "pink" | "amber";
+}
+
+/**
+ * 风险矩阵里的一项风险。
+ * 由 deriveRisks 从 conflicts + fuzzyMarks 衍生，映射到「影响 × 概率」的格子里。
+ */
+export interface RiskItem {
+  /** 风险描述文字。 */
+  text: string;
+  /** 影响等级：high 高 / medium 中 / low 低。 */
+  impact: "high" | "medium" | "low";
+  /** 发生概率：high 高 / medium 中 / low 低。 */
+  probability: "high" | "medium" | "low";
 }
 
 /**

@@ -4,7 +4,70 @@
 // 保证 AI 不可用时的兜底输出和原来"不用 AI"时完全一致。
 // 当 DeepSeek 没配置或调用失败时，ai-client.ts 会静默调用这里。
 
-import type { DecomposeResult } from "./types";
+import type { DecomposeResult, GanttPhase, RiskItem } from "./types";
+
+/**
+ * 计算需求的「清晰度评分」（0-100，越高越清晰）。
+ *
+ * 纯规则、纯函数，不依赖 AI。基础分 100，逐项扣分：
+ *   - 每命中一个模糊词 -8（如「尽快」「大概」「越多越好」）
+ *   - 目标人群「未明确」-10
+ *   - 研究目标「未明确」-10
+ *   - 样本量未给出具体数字 -10
+ *   - 周期未给出具体数字 -10
+ *   - 每条需求冲突 -15
+ * 最终 clamp 到 [0, 100]。
+ *
+ * @param result - decomposeByRule 拆解出的结构化结果
+ * @param rawText - 客户原始需求文字（用于检测是否含具体数字）
+ * @returns { score, notes } 分数与逐项扣分说明
+ */
+export function calcClarityScore(
+  result: Pick<DecomposeResult, "fuzzyMarks" | "conflicts" | "targetAudience" | "researchGoal" | "sampleSize" | "duration">,
+  rawText: string,
+): { score: number; notes: string[] } {
+  const notes: string[] = [];
+  let score = 100;
+
+  // 模糊词命中
+  for (const w of result.fuzzyMarks) {
+    score -= 8;
+    notes.push(`模糊表述「${w}」 -8`);
+  }
+
+  // 目标人群 / 研究目标缺失
+  if (result.targetAudience === "未明确") {
+    score -= 10;
+    notes.push("目标人群未明确 -10");
+  }
+  if (result.researchGoal === "未明确") {
+    score -= 10;
+    notes.push("研究目标未明确 -10");
+  }
+
+  // 量词缺失：样本量 / 周期未给出具体数字
+  const hasNumber = /\d/.test(rawText);
+  if (result.sampleSize.startsWith("未指定") || result.sampleSize.startsWith("模糊")) {
+    score -= 10;
+    notes.push("样本量未量化 -10");
+  }
+  if (result.duration.startsWith("未指定") || result.duration.startsWith("模糊") || result.duration.startsWith("建议")) {
+    // duration 常以「建议 X 周」给出（未量化），hasNumber 仅作为兜底判定
+    if (!hasNumber) {
+      score -= 10;
+      notes.push("交付周期未量化 -10");
+    }
+  }
+
+  // 冲突项
+  for (const c of result.conflicts) {
+    score -= 15;
+    notes.push(`需求冲突 -15：${c.replace(/^⚠️\s*/, "")}`);
+  }
+
+  const finalScore = Math.max(0, Math.min(100, score));
+  return { score: finalScore, notes };
+}
 
 /**
  * 把客户一段模糊的需求文字，用固定规则拆解成结构化的研究结果。
@@ -254,7 +317,7 @@ export function decomposeByRule(rawRequirement: string): DecomposeResult {
 
   // ===== 10. 组装结果 =====
 
-  return {
+  const base: DecomposeResult = {
     researchGoal,
     targetAudience,
     researchScene,
@@ -268,6 +331,13 @@ export function decomposeByRule(rawRequirement: string): DecomposeResult {
     conflicts,
     fuzzyMarks: foundFuzzy,
   };
+
+  // 清晰度评分：基于上面识别出的模糊词/冲突/缺失项算分
+  const { score: clarityScore, notes: clarityNotes } = calcClarityScore(base, text);
+  base.clarityScore = clarityScore;
+  base.clarityNotes = clarityNotes;
+
+  return base;
 }
 
 /**
@@ -315,4 +385,86 @@ export function generateTrdByRule(result: DecomposeResult): string {
     "# 报告框架",
     result.deliverables.join(" + "),
   ].join("\n");
+}
+
+/* ============================================================
+ * TRD 交付增强：Gantt 时间线 + 风险矩阵（纯函数，不依赖 AI）
+ * 数据都从 DecomposeResult 衍生，保证「AI 成功 / 本地兜底」口径一致。
+ * ============================================================ */
+
+/**
+ * 从 duration 字段（如「14天」「3 周」「建议 4-6 周」）解析出总天数。
+ *
+ * 规则：
+ *   - 取第一个出现的数字 + 单位（天/周/月/工作日）；
+ *   - 周 → ×7，月 → ×30，工作日 → ×1；
+ *   - 解析不到时给一个经验默认值 21 天（约 3 周，定性研究典型周期）。
+ */
+export function parseDurationDays(duration: string): number {
+  // 先定位单位（工作日 / 天 / 日 / 周 / 月），再取该单位前面最近的数字。
+  // 这样能处理「3 周」「4-6 周」「2 个月」「14天（合理）」等多种写法。
+  const unitMatch = duration.match(/(\d+)\s*个?\s*(工作日|天|日|周|月)/);
+  if (!unitMatch) return 21; // 默认 3 周
+  const n = parseInt(unitMatch[1], 10);
+  const unit = unitMatch[2];
+  if (unit === "周") return n * 7;
+  if (unit === "月") return n * 30;
+  // 工作日 / 天 / 日
+  return n;
+}
+
+/**
+ * 把项目总周期按研究流程拆成 4 个阶段，返回 Gantt 阶段数据。
+ *
+ * 占比经验值（可调）：招募 20% / 执行 40% / 分析 25% / 交付 15%，
+ * 每段至少 1 天，向下取整后可能略有误差，UI 上以天数展示。
+ */
+export function buildGanttPhases(duration: string): GanttPhase[] {
+  const total = parseDurationDays(duration);
+  const alloc: { key: string; ratio: number; color: GanttPhase["color"] }[] = [
+    { key: "phase_recruit", ratio: 0.2, color: "cyan" },
+    { key: "phase_execute", ratio: 0.4, color: "violet" },
+    { key: "phase_analyze", ratio: 0.25, color: "pink" },
+    { key: "phase_deliver", ratio: 0.15, color: "amber" },
+  ];
+  return alloc.map((a) => ({
+    key: a.key,
+    color: a.color,
+    days: Math.max(1, Math.round(total * a.ratio)),
+  }));
+}
+
+/**
+ * 从 conflicts + fuzzyMarks 衍生风险项，映射到「影响 × 概率」。
+ *
+ * 映射规则：
+ *   - conflicts（需求冲突/缺失）→ 影响高；冲突本身已检出 → 概率高；
+ *   - fuzzyMarks（模糊词）→ 影响中；命中越多概率越高（≥3 个为高）；
+ *   - 目标人群/研究目标缺失这类 conflict 影响降为中（属于待补充而非硬冲突）。
+ */
+export function deriveRisks(result: Pick<DecomposeResult, "conflicts" | "fuzzyMarks">): RiskItem[] {
+  const risks: RiskItem[] = [];
+
+  for (const c of result.conflicts) {
+    const text = c.replace(/^⚠️\s*/, "");
+    // 含「未明确」「不清晰」的是信息缺失，影响中等；其余（如样本/周期冲突）影响高
+    const isMissing = /未明确|不清晰|缺失/.test(text);
+    risks.push({
+      text,
+      impact: isMissing ? "medium" : "high",
+      // 已被系统检出 = 确实存在，概率高
+      probability: "high",
+    });
+  }
+
+  const fuzzyCount = result.fuzzyMarks.length;
+  if (fuzzyCount > 0) {
+    risks.push({
+      text: result.fuzzyMarks.map((f) => `「${f}」`).join("、") + " 等模糊表述可能导致理解偏差",
+      impact: "medium",
+      probability: fuzzyCount >= 3 ? "high" : "medium",
+    });
+  }
+
+  return risks;
 }
