@@ -283,6 +283,21 @@
 
 /* 仪表盘分数文字随主题 */
 .fatigue-gauge text { font-family: inherit; }
+.depth-gauge text { font-family: inherit; }
+
+/* 追问深度面板：漏斗层级柱状图，5 色（wide→deep 从浅到深） */
+.depth-bar {
+  width: 100%;
+  max-width: 28px;
+  border-radius: 4px 4px 1px 1px;
+  transition: height 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+  animation: rhythm-rise 0.5s ease both;
+}
+.depth-bar-wide    { background: linear-gradient(to top, rgba(148, 163, 184, 0.45), rgba(148, 163, 184, 0.9)); } /* 灰蓝：表层 */
+.depth-bar-mid     { background: linear-gradient(to top, rgba(34, 211, 238, 0.45), rgba(34, 211, 238, 0.9)); }  /* 青：场景 */
+.depth-bar-narrow  { background: linear-gradient(to top, rgba(59, 130, 246, 0.45), rgba(59, 130, 246, 0.9)); }  /* 蓝：细节 */
+.depth-bar-deep    { background: linear-gradient(to top, rgba(167, 139, 250, 0.45), rgba(167, 139, 250, 0.9)); }/* 紫：动机 */
+.depth-bar-detour  { background: linear-gradient(to top, rgba(245, 158, 11, 0.45), rgba(245, 158, 11, 0.9)); }  /* 琥珀：迂回 */
 
 /* 尊重用户的「减少动态」偏好 */
 @media (prefers-reduced-motion: reduce) {
@@ -292,7 +307,8 @@
   .animate-cockpit-pop,
   .animate-bubble-in,
   .typing-dot,
-  .rhythm-bar { animation: none; transition: none; }
+  .rhythm-bar,
+  .depth-bar { animation: none; transition: none; }
 }
 
 /* ============================================================

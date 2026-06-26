@@ -99,5 +99,18 @@
   "rhythm_suggestion": "⚠️ L'interviewé semble résistant — l'IA a abandonné le sujet actuel et est passée à une question simple pour rétablir la confiance.",
   "rhythm_insufficient": "L'analyse démarre après 2+ tours",
   "rhythm_turns_unit": "tours",
-  "rhythm_chart_label": "Longueur de réponse par tour (plus haut = plus engagé)"
+  "rhythm_chart_label": "Longueur de réponse par tour (plus haut = plus engagé)",
+  "depth_panel_title": "Analyse de la profondeur",
+  "depth_depth_score": "Profondeur",
+  "depth_status_shallow": "Reste en surface",
+  "depth_status_moderate": "Exploration des scénarios",
+  "depth_status_deep": "Approfondissement",
+  "depth_suggestion": "⚠️ Les questions de l'IA restent en surface — poussez vers des scénarios précis ou des motivations.",
+  "depth_insufficient": "L'analyse démarre après 2+ tours",
+  "depth_chart_label": "Profondeur par tour (vers la droite = plus profond)",
+  "depth_level_wide": "Large",
+  "depth_level_mid": "Scénario",
+  "depth_level_narrow": "Détail",
+  "depth_level_deep": "Motif",
+  "depth_level_detour": "Détour"
 }

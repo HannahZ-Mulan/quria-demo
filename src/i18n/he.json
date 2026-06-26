@@ -99,5 +99,18 @@
   "rhythm_suggestion": "⚠ ייתכן שהמרואיין מתנגד — ה-AI הניח את הנושא הנוכחי ועבר לשאלה פשוטה כדי לבנות מחדש את האמון.",
   "rhythm_insufficient": "הניתוח מתחיל אחרי 2+ תורות",
   "rhythm_turns_unit": "תורות",
-  "rhythm_chart_label": "אורך תשובה לכל תור (גבוה יותר = מעורבות רבה יותר)"
+  "rhythm_chart_label": "אורך תשובה לכל תור (גבוה יותר = מעורבות רבה יותר)",
+  "depth_panel_title": "ניתוח עומק השאלות",
+  "depth_depth_score": "עומק",
+  "depth_status_shallow": "נשאר בפני השטח",
+  "depth_status_moderate": "חוקר תרחישים",
+  "depth_status_deep": "מעמיק",
+  "depth_suggestion": "⚠ השאלות של ה-AI נשארות בפני השטח — מומלץ לדחוף לעבר תרחישים ספציפיים או מניעים.",
+  "depth_insufficient": "הניתוח מתחיל אחרי 2+ תורות",
+  "depth_chart_label": "עומק לכל תור (ימינה = עמוק יותר)",
+  "depth_level_wide": "רחב",
+  "depth_level_mid": "תרחיש",
+  "depth_level_narrow": "פרט",
+  "depth_level_deep": "מניע",
+  "depth_level_detour": "עקיפה"
 }

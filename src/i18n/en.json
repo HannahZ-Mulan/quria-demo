@@ -99,5 +99,18 @@
   "rhythm_suggestion": "⚠️ The respondent seems resistant — the AI has dropped the current topic and switched to an easy question to rebuild rapport.",
   "rhythm_insufficient": "Analysis starts after 2+ turns",
   "rhythm_turns_unit": "turns",
-  "rhythm_chart_label": "Answer length per turn (higher = more engaged)"
+  "rhythm_chart_label": "Answer length per turn (higher = more engaged)",
+  "depth_panel_title": "Probe Depth Analysis",
+  "depth_depth_score": "Depth",
+  "depth_status_shallow": "Staying surface-level",
+  "depth_status_moderate": "Exploring scenarios",
+  "depth_status_deep": "Digging deep",
+  "depth_suggestion": "⚠️ The AI is stuck at surface level — consider pushing toward specific scenarios or underlying motivations.",
+  "depth_insufficient": "Analysis starts after 2+ turns",
+  "depth_chart_label": "Probe depth per turn (rightward = deeper)",
+  "depth_level_wide": "Wide",
+  "depth_level_mid": "Scenario",
+  "depth_level_narrow": "Detail",
+  "depth_level_deep": "Motive",
+  "depth_level_detour": "Detour"
 }

@@ -99,5 +99,18 @@
   "rhythm_suggestion": "⚠️ L'intervistato sembra resistente — l'AI ha lasciato cadere l'argomento attuale ed è passata a una domanda semplice per ricostruire confidenza.",
   "rhythm_insufficient": "L'analisi inizia dopo 2+ turni",
   "rhythm_turns_unit": "turni",
-  "rhythm_chart_label": "Lunghezza risposta per turno (più alto = più coinvolto)"
+  "rhythm_chart_label": "Lunghezza risposta per turno (più alto = più coinvolto)",
+  "depth_panel_title": "Analisi della profondità",
+  "depth_depth_score": "Profondità",
+  "depth_status_shallow": "Fermo in superficie",
+  "depth_status_moderate": "Esplorazione scenari",
+  "depth_status_deep": "Approfondimento",
+  "depth_suggestion": "⚠️ Le domande dell'AI restano in superficie — spingi verso scenari specifici o motivazioni.",
+  "depth_insufficient": "L'analisi inizia dopo 2+ turni",
+  "depth_chart_label": "Profondità per turno (verso destra = più profondo)",
+  "depth_level_wide": "Ampio",
+  "depth_level_mid": "Scenario",
+  "depth_level_narrow": "Dettaglio",
+  "depth_level_deep": "Motivo",
+  "depth_level_detour": "Digressione"
 }

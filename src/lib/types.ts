@@ -111,6 +111,47 @@ export interface RhythmReport {
   suggestion: string | null;
 }
 
+// ===== project1：追问深度分析（漏斗层级可视化） =====
+
+/**
+ * AI 追问的漏斗深度层级。
+ *
+ * 来自深度访谈方法论（见 docs/memos/interview-techniques.md）的漏斗式追问理论：
+ * 好的访谈应该从宽到窄逐层下钻，而不是一直在表层打转。
+ * - wide:   表层探索（宏观问题，如"平时怎么用"）
+ * - mid:    场景还原（如"具体什么情况"）
+ * - narrow: 细节聚焦（如"当时最让你在意的是"）
+ * - deep:   动机/价值观挖掘（如"为什么这对您重要"）
+ * - detour: 主动放生（疲劳迂回时换的轻松破冰问题）
+ */
+export type DepthLevel = "wide" | "mid" | "narrow" | "deep" | "detour";
+
+/**
+ * 某一轮 AI 追问的深度数据点。
+ */
+export interface DepthPoint {
+  /** 第几轮 AI 追问（从 1 开始）。 */
+  turn: number;
+  /** 该轮追问判定的漏斗层级。 */
+  level: DepthLevel;
+  /** 该轮追问的字数。 */
+  charCount: number;
+}
+
+/**
+ * 整段对话的追问深度报告。由深度分析引擎根据 AI 消息历史算出。
+ */
+export interface DepthReport {
+  /** 每轮 AI 追问的深度数据点。 */
+  points: DepthPoint[];
+  /** 整体下钻深度 0-100，越高表示 AI 越往深层挖（越好）。 */
+  depthScore: number;
+  /** 深度趋势：deepening 加深 / stable 平稳 / flat 停滞。 */
+  trend: "deepening" | "stable" | "flat";
+  /** 建议文案的 i18n key（一直在表层打转时返回 "depth_suggestion"，否则 null）。 */
+  suggestion: string | null;
+}
+
 /**
  * 发给"多轮对话"接口（/api/project1/chat）的请求数据。
  * 就是把一整段对话历史发过去。

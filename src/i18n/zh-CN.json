@@ -99,5 +99,18 @@
   "rhythm_suggestion": "⚠️ 受访者可能抵触，AI 已放下当前话题、换轻松问题重建信任",
   "rhythm_insufficient": "对话轮数 ≥ 2 后开始分析",
   "rhythm_turns_unit": "轮",
-  "rhythm_chart_label": "每轮回答字数（越高参与度越好）"
+  "rhythm_chart_label": "每轮回答字数（越高参与度越好）",
+  "depth_panel_title": "追问深度分析",
+  "depth_depth_score": "下钻深度",
+  "depth_status_shallow": "停留在表层",
+  "depth_status_moderate": "场景探索中",
+  "depth_status_deep": "深入挖掘中",
+  "depth_suggestion": "⚠️ AI 追问停留在表层，建议向具体场景或动机深挖",
+  "depth_insufficient": "对话轮数 ≥ 2 后开始分析",
+  "depth_chart_label": "每轮追问的漏斗层级（越右越深）",
+  "depth_level_wide": "表层",
+  "depth_level_mid": "场景",
+  "depth_level_narrow": "细节",
+  "depth_level_deep": "动机",
+  "depth_level_detour": "迂回"
 }

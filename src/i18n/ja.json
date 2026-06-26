@@ -99,5 +99,18 @@
   "rhythm_suggestion": "⚠️ 回答者が抵抗している可能性があります。AIは現在の話題を置き、軽い質問に切り替えて信頼を再構築しています。",
   "rhythm_insufficient": "2ターン以上で分析を開始します",
   "rhythm_turns_unit": "ターン",
-  "rhythm_chart_label": "各ターンの回答文字数（多いほど参加度が高い）"
+  "rhythm_chart_label": "各ターンの回答文字数（多いほど参加度が高い）",
+  "depth_panel_title": "深掘り分析",
+  "depth_depth_score": "深さ",
+  "depth_status_shallow": "表面にとどまっている",
+  "depth_status_moderate": "場面を探索中",
+  "depth_status_deep": "深く掘り下げている",
+  "depth_suggestion": "⚠️ AIの質問が表面にとどまっています。具体的な場面や動機に深掘りすることを推奨します。",
+  "depth_insufficient": "2ターン以上で分析を開始します",
+  "depth_chart_label": "各ターンの深掘りレベル（右ほど深い）",
+  "depth_level_wide": "広域",
+  "depth_level_mid": "場面",
+  "depth_level_narrow": "詳細",
+  "depth_level_deep": "動機",
+  "depth_level_detour": "迂回"
 }

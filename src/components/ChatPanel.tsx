@@ -6,7 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { callChatAI } from "@/lib/ai-client";
 import { analyzeRhythm } from "@/lib/rhythm-analyzer";
-import type { ChatMessage, RhythmReport } from "@/lib/types";
+import { analyzeDepth } from "@/lib/depth-analyzer";
+import type { ChatMessage, RhythmReport, DepthReport, DepthLevel } from "@/lib/types";
 
 /**
  * project1 的"多轮对话"面板（深空控制台风格版）。
@@ -40,6 +41,10 @@ export function ChatPanel() {
 
   // 节奏报告：消息一变就重算（纯前端，开销极小）。
   const rhythm: RhythmReport = useMemo(() => analyzeRhythm(messages), [messages]);
+
+  // 追问深度报告：同样纯前端，扫描每轮 AI 追问判定的漏斗层级。
+  // 与节奏面板配成「访谈健康度双仪表」：左看受访者状态、右看 AI 下钻深度。
+  const depth: DepthReport = useMemo(() => analyzeDepth(messages), [messages]);
 
   /**
    * 发送当前输入框里的消息。
@@ -174,8 +179,11 @@ export function ChatPanel() {
         </Button>
       </div>
 
-      {/* 访谈节奏面板（差异化亮点） */}
-      <RhythmPanel rhythm={rhythm} />
+      {/* 访谈健康度双仪表：节奏（受访者）+ 深度（AI） */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <RhythmPanel rhythm={rhythm} />
+        <DepthPanel depth={depth} />
+      </div>
     </div>
   );
 }
@@ -316,4 +324,152 @@ function formatDelay(ms: number): string {
   if (ms <= 0) return "—";
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
+}
+
+/* ============================================================
+ * 追问深度面板（Probe Depth Panel）
+ * ============================================================
+ * 与节奏面板镜像，但视角相反——节奏看"受访者"，深度看"AI"：
+ * 1) 柱状图——每轮 AI 追问的漏斗层级（wide/mid/narrow/deep/detour）
+ * 2) 深度仪表盘——SVG 半圆弧，0-100（越高=下钻越深=越好）
+ * 3) 建议横幅——AI 一直在表层打转时提示向场景/动机深挖
+ *
+ * 依据：docs/memos/interview-techniques.md 的漏斗式追问理论。
+ * 竞品（Outset/Remesh）只管"问"，这是把"问得有没有水平"变成可度量指标。
+ */
+
+/** 漏斗层级 → 文案 i18n key */
+const DEPTH_LEVEL_LABEL: Record<DepthLevel, string> = {
+  wide: "depth_level_wide",
+  mid: "depth_level_mid",
+  narrow: "depth_level_narrow",
+  deep: "depth_level_deep",
+  detour: "depth_level_detour",
+};
+
+function DepthPanel({ depth }: { depth: DepthReport }) {
+  const { t } = useI18n();
+  const { points, depthScore, suggestion } = depth;
+
+  // 深度分越高越好（和疲劳度相反）。三档状态文案：
+  // <40 停表层 / 40-69 场景探索 / ≥70 深入挖掘
+  const statusKey =
+    depthScore >= 70 ? "depth_status_deep" : depthScore >= 40 ? "depth_status_moderate" : "depth_status_shallow";
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-4">
+      {/* 标题行 */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold tracking-wide text-gray-300">
+          🎯 {t("depth_panel_title")}
+        </span>
+        <span className="text-[10px] text-gray-500">
+          {points.length < 2 ? t("depth_insufficient") : `${points.length} ${t("rhythm_turns_unit")}`}
+        </span>
+      </div>
+
+      {points.length < 2 ? (
+        // 数据不足时的占位
+        <div className="py-6 text-center text-xs text-gray-600">
+          {t("depth_insufficient")}
+        </div>
+      ) : (
+        <>
+          {/* 主体：左侧层级柱状图 + 右侧仪表盘 */}
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4 items-center">
+            {/* 漏斗层级柱状图：柱高固定（按层级），颜色区分层级 */}
+            <div>
+              <div className="flex items-end gap-1.5 h-24">
+                {points.map((p) => {
+                  // 柱高按层级映射：wide 最矮，deep 最高，detour 最矮
+                  const heightMap: Record<DepthLevel, number> = {
+                    wide: 28,
+                    mid: 48,
+                    narrow: 68,
+                    deep: 92,
+                    detour: 22,
+                  };
+                  const height = heightMap[p.level];
+                  return (
+                    <div
+                      key={p.turn}
+                      className="depth-bar-wrap group relative flex-1 flex flex-col items-center justify-end"
+                      style={{ height: "100%" }}
+                    >
+                      {/* 悬停提示 */}
+                      <div className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md border border-white/15 bg-slate-900/95 px-2 py-1 text-[10px] text-gray-200 opacity-0 transition-opacity group-hover:opacity-100">
+                        #{p.turn} · {t(DEPTH_LEVEL_LABEL[p.level])}
+                      </div>
+                      {/* 柱子 */}
+                      <div
+                        className={`depth-bar depth-bar-${p.level}`}
+                        style={{ height: `${height}%` }}
+                      />
+                      <span className="mt-1 text-[9px] text-gray-600">{p.turn}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-1 text-[10px] text-gray-600">{t("depth_chart_label")}</div>
+            </div>
+
+            {/* 深度仪表盘 */}
+            <div className="flex flex-col items-center justify-self-center">
+              <DepthGauge score={depthScore} />
+              <div className="mt-1 text-[11px] font-semibold text-gray-300">{t(statusKey)}</div>
+              <div className="text-[9px] uppercase tracking-wide text-gray-600">{t("depth_depth_score")}</div>
+            </div>
+          </div>
+
+          {/* 建议横幅（仅停留在表层时） */}
+          {suggestion && (
+            <div className="rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-200 animate-bubble-in">
+              {t(suggestion)}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/** 半圆深度仪表盘（SVG）。0=红（停表层），100=青（深入挖掘）。与疲劳度渐变方向相反。 */
+function DepthGauge({ score }: { score: number }) {
+  const clamped = Math.max(0, Math.min(100, score));
+  const radius = 34;
+  const circumference = Math.PI * radius; // 半圆周长
+  const filled = (clamped / 100) * circumference;
+  return (
+    <svg width="92" height="56" viewBox="0 0 92 56" className="depth-gauge">
+      <defs>
+        {/* 注意：和疲劳度相反，这里是 红→黄→青（低分红、高分青） */}
+        <linearGradient id="depthGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#f43f5e" />
+          <stop offset="50%" stopColor="#eab308" />
+          <stop offset="100%" stopColor="#22d3ee" />
+        </linearGradient>
+      </defs>
+      {/* 背景弧（灰） */}
+      <path
+        d="M 8 50 A 34 34 0 0 1 84 50"
+        fill="none"
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
+      {/* 进度弧（渐变） */}
+      <path
+        d="M 8 50 A 34 34 0 0 1 84 50"
+        fill="none"
+        stroke="url(#depthGrad)"
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeDasharray={`${filled} ${circumference}`}
+      />
+      {/* 中心分数 */}
+      <text x="46" y="46" textAnchor="middle" className="fill-white" style={{ fontSize: 18, fontWeight: 700 }}>
+        {clamped}
+      </text>
+    </svg>
+  );
 }
