@@ -120,6 +120,12 @@ export interface ChatRequest {
   messages: ChatMessage[];
   /** 界面语言（可选），决定 AI 回复语言。 */
   lang?: import("@/i18n").Language;
+  /**
+   * 当前访谈疲劳度评分（0-100，可选）。
+   * 由前端节奏分析引擎算出，回传给 AI 接口和本地兜底。
+   * 高疲劳度时 AI 会自动缩短追问、换轻松话题——这是节奏分析的"闭环"。
+   */
+  fatigueScore?: number;
 }
 
 /**

@@ -32,8 +32,6 @@ export function ChatPanel() {
   const [usedAI, setUsedAI] = useState(true);
   // 用来引用聊天滚动区域，方便自动滚到底部
   const scrollRef = useRef<HTMLDivElement>(null);
-  // 记录"AI 上一条消息发出的时刻"，用于计算用户下一轮的响应间隔
-  const lastAssistantTsRef = useRef<number | null>(null);
 
   // 当消息变化或加载状态变化时，把聊天区自动滚动到最底部
   useEffect(() => {
@@ -63,11 +61,16 @@ export function ChatPanel() {
     setLoading(true);
 
     try {
-      const { reply, usedAI: ai } = await callChatAI(nextMessages, lang);
+      // 把当前疲劳度传给 AI——高疲劳时 AI 会自动缩短追问、换轻松话题。
+      // 这让「节奏面板」的检测不只是展示，而是真正改变访谈行为，形成闭环。
+      const { reply, usedAI: ai } = await callChatAI(
+        nextMessages,
+        lang,
+        rhythm.fatigueScore
+      );
       const replyTs = Date.now();
       setMessages([...nextMessages, { role: "assistant", content: reply, ts: replyTs }]);
       setUsedAI(ai);
-      lastAssistantTsRef.current = replyTs;
     } finally {
       setLoading(false);
     }
@@ -141,7 +144,6 @@ export function ChatPanel() {
               onClick={() => {
                 setMessages([]);
                 setUsedAI(true);
-                lastAssistantTsRef.current = null;
               }}
               className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-gray-500 transition-colors hover:text-gray-200 hover:bg-white/10"
               title={t("clear_history")}

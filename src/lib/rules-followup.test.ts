@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateFollowupByRule } from "./rules-followup";
+import { generateFollowupByRule, generateRapportByRule } from "./rules-followup";
 
 /**
  * Regression tests: the rule fallback must produce byte-for-byte identical output
@@ -100,5 +100,63 @@ describe("generateFollowupByRule", () => {
     const r = generateFollowupByRule("this product is great", "精简", "PC", "en");
     expect(r.strategy).toBe("Preference mining (compact mode)");
     expect(r.question).toBe("What did you like most?");
+  });
+});
+
+/**
+ * 破冰迂回策略（generateRapportByRule）的测试。
+ *
+ * 这是对齐真人访谈员 craft 的核心：受访者抵触时，不压短原话题，
+ * 而是完全切换到轻松问题重建信任。测试覆盖：
+ * 1. 策略标签正确标记为「破冰迂回」
+ * 2. 按访谈阶段（早/中/晚）选对问题池
+ * 3. 连续调用不会重复同一句（用轮次做伪随机）
+ * 4. 英文语言走英文问题池
+ */
+describe("generateRapportByRule", () => {
+  it("标记为破冰迂回策略", () => {
+    const r = generateRapportByRule(1, "zh-CN");
+    expect(r.strategy).toBe("破冰迂回（疲劳应对）");
+  });
+
+  it("英文标记为 Rapport-building", () => {
+    const r = generateRapportByRule(1, "en");
+    expect(r.strategy).toBe("Rapport-building (fatigue)");
+  });
+
+  it("wordCount 与 question 长度一致", () => {
+    const r = generateRapportByRule(2, "zh-CN");
+    expect(r.wordCount).toBe(r.question.length);
+  });
+
+  it("早期阶段（轮次<5）返回日常轻松问题", () => {
+    // 早期问题池里至少应包含「周末」「日常」这类轻松话题
+    const r = generateRapportByRule(1, "zh-CN");
+    // 早期池的三个问题，轮次 1 取 index 1
+    expect(r.question).toBe("除了这个，最近有没有碰到什么让你觉得有趣的事？");
+  });
+
+  it("中期阶段（5≤轮次<10）切换到场景类问题", () => {
+    const r = generateRapportByRule(5, "zh-CN");
+    // 中期池，轮次 5 取 index 2（5 % 3 = 2）
+    expect(r.question).toBe("不急，你想到什么都可以随便聊聊。");
+  });
+
+  it("晚期阶段（轮次≥10）表达感谢", () => {
+    const r = generateRapportByRule(10, "zh-CN");
+    // 晚期池，轮次 10 取 index 1（10 % 3 = 1）
+    expect(r.question).toContain("辛苦");
+  });
+
+  it("连续两轮不重复同一句破冰问题", () => {
+    const a = generateRapportByRule(1, "zh-CN");
+    const b = generateRapportByRule(2, "zh-CN");
+    expect(a.question).not.toBe(b.question);
+  });
+
+  it("英文走英文问题池", () => {
+    const r = generateRapportByRule(0, "en");
+    // 英文早期池 index 0
+    expect(r.question).toBe("What do you usually like to do on weekends?");
   });
 });

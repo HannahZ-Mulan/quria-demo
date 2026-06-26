@@ -294,3 +294,145 @@
   .typing-dot,
   .rhythm-bar { animation: none; transition: none; }
 }
+
+/* ============================================================
+   Markdown 文档排版（.md-doc）—— 适配深空科技风
+   用于 /docs 文档中心页渲染 PRD / SRS 原文
+   ============================================================ */
+.md-doc {
+  color: #c7cbe0;
+  font-size: 14.5px;
+  line-height: 1.8;
+}
+.md-doc > *:first-child { margin-top: 0; }
+
+/* 标题 */
+.md-doc h1,
+.md-doc h2,
+.md-doc h3,
+.md-doc h4 {
+  color: #f1f3fb;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-top: 1.8em;
+  margin-bottom: 0.6em;
+}
+.md-doc h1 {
+  font-size: 1.6em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(110deg, #a78bfa, #22d3ee 55%, #f472b6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.md-doc h2 {
+  font-size: 1.3em;
+  padding-left: 0.6em;
+  border-left: 3px solid #22d3ee;
+}
+.md-doc h3 { font-size: 1.12em; color: #a5f3fc; }
+.md-doc h4 { font-size: 1em; color: #c4b5fd; }
+
+/* 段落 / 换行 */
+.md-doc p { margin: 0.8em 0; }
+
+/* 加粗 / 强调 */
+.md-doc strong { color: #fbbf24; font-weight: 600; }
+.md-doc em { color: #d6d9ec; }
+
+/* 链接 */
+.md-doc a {
+  color: #67e8f9;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md-doc a:hover { color: #a5f3fc; }
+
+/* 行内代码 / 代码块 */
+.md-doc code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.88em;
+  background: rgba(34, 211, 238, 0.12);
+  color: #a5f3fc;
+  padding: 0.12em 0.4em;
+  border-radius: 5px;
+}
+.md-doc pre {
+  background: rgba(7, 9, 26, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+.md-doc pre code {
+  background: transparent;
+  color: #d6d9ec;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.86em;
+}
+
+/* 引用块 */
+.md-doc blockquote {
+  margin: 1em 0;
+  padding: 0.6em 1em;
+  border-left: 3px solid #a78bfa;
+  background: rgba(167, 139, 250, 0.08);
+  border-radius: 0 8px 8px 0;
+  color: #b9bde0;
+}
+.md-doc blockquote p { margin: 0.3em 0; }
+
+/* 列表 */
+.md-doc ul,
+.md-doc ol { margin: 0.7em 0; padding-left: 1.5em; }
+.md-doc li { margin: 0.3em 0; }
+.md-doc ul { list-style: disc; }
+.md-doc ol { list-style: decimal; }
+.md-doc li::marker { color: #22d3ee; }
+
+/* 任务列表（GFM）—— 去掉默认圆点，复选框着色 */
+.md-doc li:has(> input[type="checkbox"]) {
+  list-style: none;
+  margin-left: -1.1em;
+}
+.md-doc input[type="checkbox"] {
+  accent-color: #22d3ee;
+  margin-right: 0.5em;
+  transform: translateY(1px);
+}
+
+/* 表格 */
+.md-doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.9em;
+  overflow: hidden;
+  border-radius: 8px;
+}
+.md-doc thead {
+  background: rgba(124, 92, 255, 0.18);
+}
+.md-doc th,
+.md-doc td {
+  padding: 0.55em 0.9em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+}
+.md-doc th { color: #e9ecfb; font-weight: 600; }
+.md-doc tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+.md-doc tbody tr:hover {
+  background: rgba(34, 211, 238, 0.06);
+}
+
+/* 水平分割线 */
+.md-doc hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  margin: 1.6em 0;
+}

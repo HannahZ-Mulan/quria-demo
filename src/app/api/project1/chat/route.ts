@@ -44,6 +44,42 @@ const SYSTEM_PROMPT = [
 ].join("\n");
 
 /**
+ * 根据疲劳度动态生成"追问风格"指令。
+ *
+ * 这是访谈节奏分析的闭环核心：前端的节奏面板检测到受访者疲劳后，
+ * 把 fatigueScore 回传到本接口，AI 据此调整追问策略。
+ *
+ * 关键设计——对齐真人访谈员的 craft，分两档应对：
+ * - 轻度疲劳(30-59)：受访者只是注意力下降，把当前追问收短、降低难度即可。
+ * - 重度疲劳(≥60)：受访者已抵触，绝不能继续追问原话题（哪怕压短了还是在追着问）。
+ *   要像真人访谈员那样"放下"当前问题，换一个低门槛的轻松话题转移注意力，
+ *   等受访者放松、重建信任后，再找机会自然地迂回。
+ *
+ * 三档阈值与前端仪表盘的颜色分级（good<30 / warn 30-59 / risk≥60）一致。
+ *
+ * @param fatigueScore - 疲劳度 0-100，未提供时视为 0（正常）
+ * @returns 追加到 system prompt 的风格指令（可为空字符串）
+ */
+function fatigueInstruction(fatigueScore: number = 0): string {
+  if (fatigueScore >= 60) {
+    return [
+      "\n【受访者状态：严重疲劳/抵触】务必像真人访谈员一样「迂回」，不要继续追问当前话题：",
+      "- 完全放下刚才的话题，换一个轻松、低门槛、好答的问题转移注意力（例如日常生活、最近的小事、个人偏好）。",
+      "- 不要为了字数短而继续逼问原问题——受访者会觉得被追着问、更抗拒。",
+      "- 语气更口语、更轻松，可以加一句过渡（「聊点别的」「不急，随便聊聊」）。",
+      "- 等受访者重新愿意开口、回答变长后，再找机会自然地把话题引回来。",
+    ].join("\n");
+  }
+  if (fatigueScore >= 30) {
+    return [
+      "\n【受访者状态：参与度一般】",
+      "- 把追问控制在 40 字以内，避免一次抛出太重的问题。",
+    ].join("\n");
+  }
+  return "";
+}
+
+/**
  * 处理多轮对话的 POST 请求。
  * 接收对话历史 → 裁剪 → 调用 DeepSeek → 返回 AI 的下一句回复。
  * 请求格式不对返回 400；AI 没配置返回 503；AI 调用失败返回对应错误码。
@@ -59,7 +95,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { messages, lang } = body;
+  const { messages, lang, fatigueScore } = body;
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "Missing messages" }, { status: 400 });
   }
@@ -81,7 +117,8 @@ export async function POST(request: Request) {
     replyLang === "en"
       ? "Respond entirely in English."
       : "全部用简体中文回复。";
-  const systemPrompt = `${SYSTEM_PROMPT}\n${langInstruction}`;
+  // 疲劳度触发自适应追问风格（节奏分析的闭环）
+  const systemPrompt = `${SYSTEM_PROMPT}${fatigueInstruction(fatigueScore)}\n${langInstruction}`;
 
   try {
     const reply = await callDeepSeek({

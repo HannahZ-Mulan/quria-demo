@@ -15,7 +15,7 @@ import type {
   DecomposeResult,
 } from "./types";
 import type { Language } from "@/i18n";
-import { generateFollowupByRule } from "./rules-followup";
+import { generateFollowupByRule, generateRapportByRule } from "./rules-followup";
 import { decomposeByRule, generateTrdByRule } from "./rules-decompose";
 
 // 客户端超时时间：比服务端的 30 秒超时长一点（35 秒）。
@@ -117,23 +117,32 @@ export async function callFollowupAI(
  */
 export async function callChatAI(
   messages: ChatMessage[],
-  lang: Language = "zh-CN"
+  lang: Language = "zh-CN",
+  fatigueScore: number = 0
 ): Promise<{ reply: string; usedAI: boolean }> {
   try {
     const res = await postJSON<{ reply: string; usedAI: boolean }>(
       "/api/project1/chat",
-      { messages, lang }
+      { messages, lang, fatigueScore }
     );
     return { reply: res.reply, usedAI: res.usedAI };
   } catch {
-    // 兜底：从最后一条用户消息里临时生成一句追问，保证对话不中断
+    // 兜底：从最后一条用户消息里临时生成一句追问，保证对话不中断。
+    // 疲劳应对分两档，对齐真人访谈员的 craft：
+    // - 重度疲劳(≥60)：受访者已抵触，不压短原话题（那仍是在追着问），
+    //   而是完全切换到轻松破冰问题，放下当前话题重建信任，等松动了再迂回。
+    // - 轻度疲劳(30-59)：受访者只是注意力下降，把追问收短到「精简」即可。
     const lastUser = [...messages].reverse().find((m) => m.role === "user");
-    const fallback = generateFollowupByRule(
-      lastUser?.content ?? "",
-      "标准",
-      "PC",
-      lang
-    );
+    const turnCount = messages.filter((m) => m.role === "user").length;
+    const fallback =
+      fatigueScore >= 60
+        ? generateRapportByRule(turnCount, lang)
+        : generateFollowupByRule(
+            lastUser?.content ?? "",
+            fatigueScore >= 30 ? "精简" : "标准",
+            "PC",
+            lang
+          );
     return { reply: fallback.question, usedAI: false };
   }
 }

@@ -97,6 +97,89 @@ const MODE_SUFFIX: Record<Mode, { "zh-CN": string; en: string }> = {
 const MOBILE_SUFFIX = { "zh-CN": "移动端适配", en: "mobile-adapted" };
 
 /**
+ * 破冰问题库：受访者疲劳/抵触时，用来重建信任的轻松话题。
+ *
+ * 设计依据：真人访谈员在受访者抵触时不会继续追问原话题，
+ * 而是放下当前问题，换一个低门槛、好答的轻松问题转移注意力，
+ * 等受访者放松、重建信任后再找机会迂回。
+ *
+ * 按访谈阶段分三组，避免连续两次问同一个破冰问题。
+ */
+const RAPPORT_QUESTIONS: Record<"early" | "mid" | "late", { "zh-CN": string[]; en: string[] }> = {
+  // 访谈早期：回到受访者本身、轻松日常
+  early: {
+    "zh-CN": [
+      "你平时周末一般喜欢做点什么呢？",
+      "除了这个，最近有没有碰到什么让你觉得有趣的事？",
+      "你平时是怎么安排自己的一天的呀？",
+    ],
+    en: [
+      "What do you usually like to do on weekends?",
+      "Has anything fun happened to you lately, apart from this?",
+      "How do you usually organize your day?",
+    ],
+  },
+  // 访谈中期：转回场景、降低抽象度
+  mid: {
+    "zh-CN": [
+      "聊点别的，你上次用这类产品是什么时候？",
+      "换个角度，你觉得什么样的体验会让你觉得舒服？",
+      "不急，你想到什么都可以随便聊聊。",
+    ],
+    en: [
+      "Let's switch gears — when did you last use something like this?",
+      "From another angle, what makes an experience feel comfortable to you?",
+      "No rush, feel free to chat about whatever comes to mind.",
+    ],
+  },
+  // 访谈后期：感谢 + 鼓励重新参与
+  late: {
+    "zh-CN": [
+      "谢谢你这么有耐心，我想确认下，还有哪些是你觉得特别重要的？",
+      "辛苦啦，前面聊了很多，有没有什么是我想问但没问到的？",
+      "你前面提到的几点都很有帮助，最后想听听你真实的感受就好。",
+    ],
+    en: [
+      "Thanks for your patience — is there anything you feel is especially important?",
+      "Thanks for sticking with me. Is there anything I should've asked but didn't?",
+      "The points you raised were really helpful. I'd love to just hear your honest feeling.",
+    ],
+  },
+};
+
+/**
+ * 受访者疲劳/抵触时的「迂回」策略：放下当前话题，换一个轻松问题重建信任。
+ *
+ * 与「精简模式」的区别：精简是把原话题压短（受访者仍被追着问），
+ * 迂回是完全切换话题（受访者被「放生」）——这才是真人访谈员的 craft。
+ *
+ * @param turnCount - 已完成的轮次（用来挑早/中/晚期的破冰问题）
+ * @param lang - 界面语言
+ * @returns 破冰问题结果（策略标签标记为「破冰迂回」）
+ */
+export function generateRapportByRule(
+  turnCount: number,
+  lang: Language = "zh-CN"
+): QuestionResult {
+  const L: "zh-CN" | "en" = lang === "en" ? "en" : "zh-CN";
+  // 按轮次选阶段：前 4 轮早期，5-9 轮中期，10+ 轮晚期
+  const phase: "early" | "mid" | "late" =
+    turnCount >= 10 ? "late" : turnCount >= 5 ? "mid" : "early";
+  // 用轮次做伪随机，避免连续两次问同一句
+  const pool = RAPPORT_QUESTIONS[phase][L];
+  const question = pool[turnCount % pool.length];
+  return {
+    question,
+    wordCount: question.length,
+    strategy:
+      L === "en"
+        ? "Rapport-building (fatigue)"
+        : "破冰迂回（疲劳应对）",
+    originalLength: question.length,
+  };
+}
+
+/**
  * 根据用户回答里的"关键词" + 选择的模式/设备，用固定规则生成一句追问。
  *
  * 工作原理：
