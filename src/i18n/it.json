@@ -1,7 +1,7 @@
 {
-  "project1_title": "Progetto 1: Ottimizzazione dinamica della lunghezza delle domande di approfondimento",
+  "project1_title": "Ottimizzazione dinamica della lunghezza delle domande di approfondimento",
   "project1_desc": "Risolve il problema delle domande di approfondimento dell'IA troppo lunghe che peggiorano l'esperienza dell'intervistato. Controlla dinamicamente la lunghezza delle domande in base alla lunghezza della risposta, al dispositivo e alla modalità di intervista.",
-  "project3_title": "Progetto 3: Standardizzazione dei requisiti del cliente",
+  "project3_title": "Standardizzazione dei requisiti del cliente",
   "project3_desc": "Traduce automaticamente requisiti vaghi del cliente in soluzioni tecniche eseguibili. Supporta il rilevamento dei conflitti, la segnalazione di ambiguità e la generazione di TRD con un clic.",
   "view_demo": "Vedi demo",
   "home_title": "Ottimizzazione del prodotto Quria",

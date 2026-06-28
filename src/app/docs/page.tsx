@@ -177,19 +177,19 @@ export default function DocsPage() {
             <TabsList className="flex w-full justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04]! p-2 backdrop-blur-sm sm:w-auto sm:flex-nowrap">
               <TabsTrigger value="p1-prd" className={tabCyan}>
                 <span className="text-[10px] font-bold tracking-[0.16em] text-cyan-300/70 uppercase">PRD</span>
-                <span className="text-xs leading-tight">{t("project1_title").split("：")[1] ?? t("project1_title")}</span>
+                <span className="text-xs leading-tight">{t("project1_title")}</span>
               </TabsTrigger>
               <TabsTrigger value="p1-srs" className={tabCyan}>
                 <span className="text-[10px] font-bold tracking-[0.16em] text-cyan-300/70 uppercase">SRS</span>
-                <span className="text-xs leading-tight">{t("project1_title").split("：")[1] ?? t("project1_title")}</span>
+                <span className="text-xs leading-tight">{t("project1_title")}</span>
               </TabsTrigger>
               <TabsTrigger value="p3-prd" className={tabViolet}>
                 <span className="text-[10px] font-bold tracking-[0.16em] text-violet-300/70 uppercase">PRD</span>
-                <span className="text-xs leading-tight">{t("project3_title").split("：")[1] ?? t("project3_title")}</span>
+                <span className="text-xs leading-tight">{t("project3_title")}</span>
               </TabsTrigger>
               <TabsTrigger value="p3-srs" className={tabViolet}>
                 <span className="text-[10px] font-bold tracking-[0.16em] text-violet-300/70 uppercase">SRS</span>
-                <span className="text-xs leading-tight">{t("project3_title").split("：")[1] ?? t("project3_title")}</span>
+                <span className="text-xs leading-tight">{t("project3_title")}</span>
               </TabsTrigger>
             </TabsList>
           </div>

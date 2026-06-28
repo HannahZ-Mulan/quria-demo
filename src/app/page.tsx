@@ -44,7 +44,7 @@ export default function Home() {
               <div className="space-y-4">
                 <span className="text-3xl">✨</span>
                 <h3 className="text-lg font-semibold text-white">
-                  {t("project1_title").split("：")[1] ?? t("project1_title")}
+                  {t("project1_title")}
                 </h3>
                 <p className="text-sm text-gray-400 leading-relaxed">
                   {t("project1_desc")}
@@ -66,7 +66,7 @@ export default function Home() {
               <div className="space-y-4">
                 <span className="text-3xl">🧩</span>
                 <h3 className="text-lg font-semibold text-white">
-                  {t("project3_title").split("：")[1] ?? t("project3_title")}
+                  {t("project3_title")}
                 </h3>
                 <p className="text-sm text-gray-400 leading-relaxed">
                   {t("project3_desc")}

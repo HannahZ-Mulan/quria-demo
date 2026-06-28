@@ -1,7 +1,7 @@
 {
-  "project1_title": "Projet 1 : Optimisation dynamique de la longueur des relances",
+  "project1_title": "Optimisation dynamique de la longueur des relances",
   "project1_desc": "Résout le problème des relances de l'IA trop longues qui dégradent l'expérience des répondants. Contrôle dynamiquement la longueur des questions selon la longueur de la réponse, le type d'appareil et le mode d'entretien.",
-  "project3_title": "Projet 3 : Standardisation des besoins clients",
+  "project3_title": "Standardisation des besoins clients",
   "project3_desc": "Traduit automatiquement les besoins clients flous en solutions techniques exécutables. Prend en charge la détection des conflits, le marquage des imprécisions et la génération de TRD en un clic.",
   "view_demo": "Voir la démo",
   "home_title": "Optimisation du produit Quria",

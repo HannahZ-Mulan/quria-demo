@@ -1,7 +1,7 @@
 {
-  "project1_title": "Projeto 1: Otimização dinâmica do comprimento das perguntas de aprofundamento",
+  "project1_title": "Otimização dinâmica do comprimento das perguntas de aprofundamento",
   "project1_desc": "Resolve o problema das perguntas de aprofundamento da IA excessivamente longas que degradam a experiência do entrevistado. Controla dinamicamente o comprimento das perguntas com base no comprimento da resposta, no dispositivo e no modo de entrevista.",
-  "project3_title": "Projeto 3: Padronização dos requisitos do cliente",
+  "project3_title": "Padronização dos requisitos do cliente",
   "project3_desc": "Traduz automaticamente requisitos vagos do cliente em soluções técnicas executáveis. Suporta detecção de conflitos, marcação de imprecisões e geração de TRD com um clique.",
   "view_demo": "Ver demonstração",
   "home_title": "Otimização do produto Quria",

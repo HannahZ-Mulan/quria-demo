@@ -1,7 +1,7 @@
 {
-  "project1_title": "Project 1: AI Follow-up Length Optimization",
+  "project1_title": "AI Follow-up Length Optimization",
   "project1_desc": "Solves the problem of overly long AI follow-up questions that degrade respondent experience. Dynamically controls question length based on answer length, device type, and interview mode.",
-  "project3_title": "Project 3: Client Requirement Standardization",
+  "project3_title": "Client Requirement Standardization",
   "project3_desc": "Automatically translates vague client requirements into executable technical solutions. Supports conflict detection, fuzzy marking, and one-click TRD generation.",
   "view_demo": "View Demo",
   "home_title": "Quria Product Optimization",

@@ -1,7 +1,7 @@
 {
-  "project1_title": "Proyecto 1: Optimización dinámica de la longitud de las preguntas de seguimiento",
+  "project1_title": "Optimización dinámica de la longitud de las preguntas de seguimiento",
   "project1_desc": "Resuelve el problema de las preguntas de seguimiento de la IA demasiado largas que degradan la experiencia del entrevistado. Controla dinámicamente la longitud de las preguntas según la longitud de la respuesta, el dispositivo y el modo de entrevista.",
-  "project3_title": "Proyecto 3: Estandarización de los requisitos del cliente",
+  "project3_title": "Estandarización de los requisitos del cliente",
   "project3_desc": "Traduce automáticamente los requisitos vagos del cliente en soluciones técnicas ejecutables. Soporta detección de conflictos, marcado de imprecisiones y generación de TRD con un clic.",
   "view_demo": "Ver demo",
   "home_title": "Optimización del producto Quria",

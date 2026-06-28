@@ -1,7 +1,7 @@
 {
-  "project1_title": "項目 1：AI 追問長度動態優化",
+  "project1_title": "AI 追問長度動態優化",
   "project1_desc": "解決當前 AI 訪談中追問過長、受訪者體驗下降的問題。根據回答長度、設備類型、訪談模式動態控制追問字數。",
-  "project3_title": "項目 3：客戶需求標準化拆解",
+  "project3_title": "客戶需求標準化拆解",
   "project3_desc": "將模糊的客戶需求自動翻譯為可執行的技術方案。支持衝突檢測、模糊標記、一鍵生成 TRD。",
   "view_demo": "查看演示",
   "home_title": "Quria 產品優化方案",
