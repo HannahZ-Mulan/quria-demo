@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { I18nProvider } from "@/i18n/index";  // 或者 @/i18n/index.tsx
 
-// 加载 Inter 字体（只加载拉丁字符子集，加快速度）
-const inter = Inter({ subsets: ["latin"] });
+// 加载 Inter 字体（本地 woff2 文件，不再依赖 Google CDN）。
+// 用静态字重替代 variable：视觉一致，且本地构建/离线环境下也能正常打包。
+// 涵盖 UI 实际用到的 5 个字重（400/500/600/700/800），统一声明 display: swap。
+const inter = localFont({
+  src: [
+    { path: "./fonts/inter-latin-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/inter-latin-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/inter-latin-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/inter-latin-700.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/inter-latin-800.woff2", weight: "800", style: "normal" },
+  ],
+  display: "swap",
+});
 
 // 网页的元信息：浏览器标签页上显示的标题和描述
 export const metadata: Metadata = {
