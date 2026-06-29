@@ -46,3 +46,7 @@ next-env.d.ts
 # 个人面试准备材料（私有，不上传 GitHub）
 docs/memos/project1-demo-script.md
 docs/memos/optimization-suggestions.md
+
+# 个人面试资料，不提交到仓库
+docs/memos/interview-talking-points.md
+docs/memos/interview-talking-points.docx
