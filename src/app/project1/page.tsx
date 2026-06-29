@@ -22,6 +22,10 @@ import type { Mode, Device, QuestionResult } from "@/lib/types";
 export default function Project1Demo() {
   const { t, lang } = useI18n();
   const [tab, setTab] = useState<"single" | "chat">("single");
+  // 是否已向用户展示过「多轮追问」介绍卡。展示一次后不再自动弹出（避免打扰）。
+  const [chatIntroSeen, setChatIntroSeen] = useState(false);
+  // 切到多轮且尚未看过介绍 → 触发介绍卡
+  const showChatIntro = tab === "chat" && !chatIntroSeen;
 
   const [answer, setAnswer] = useState("");
   const [mode, setMode] = useState<Mode>("标准");
@@ -79,12 +83,16 @@ export default function Project1Demo() {
           <p className="text-gray-400 max-w-2xl mx-auto">{t("project1_desc")}</p>
         </div>
 
-        {/* 模式切换分段控件 */}
+        {/* 模式切换分段控件。多轮追问 Tab 带高亮引导（未看过介绍时闪烁）。 */}
         <div className="mx-auto flex max-w-xs gap-1 rounded-xl border border-white/10 bg-white/[0.04] p-1">
           <TabBtn on={tab === "single"} onClick={() => setTab("single")}>
             {t("single_turn_mode")}
           </TabBtn>
-          <TabBtn on={tab === "chat"} onClick={() => setTab("chat")}>
+          <TabBtn
+            on={tab === "chat"}
+            onClick={() => setTab("chat")}
+            highlight={!chatIntroSeen}
+          >
             {t("chat_mode")}
           </TabBtn>
         </div>
@@ -213,8 +221,20 @@ export default function Project1Demo() {
 
         {/* ===== 多轮对话 ===== */}
         {tab === "chat" && (
-          <div className="glass-panel p-6">
-            <ChatPanel />
+          <div className="relative space-y-3">
+            {/* D. 常驻高亮摘要行：始终提醒这个模式的亮点 */}
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/[0.07] px-4 py-2.5 text-xs">
+              <span className="font-bold text-amber-300">✨ {t("chat_highlight_title")}</span>
+              <span className="text-amber-200/80">{t("chat_highlight_desc")}</span>
+            </div>
+
+            <div className="glass-panel relative p-6">
+              <ChatPanel />
+              {/* B. 首次切换介绍卡：覆盖在面板上，引导体验 */}
+              {showChatIntro && (
+                <ChatIntroCard onStart={() => setChatIntroSeen(true)} />
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -289,18 +309,39 @@ function SegmentedControl({
   );
 }
 
-/** Tab 按钮 */
-function TabBtn({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+/** Tab 按钮。highlight=true 时（多轮追问未点击过）显示闪烁徽章 + 脉冲边框引导。 */
+function TabBtn({
+  on,
+  onClick,
+  highlight,
+  children,
+}: {
+  on: boolean;
+  onClick: () => void;
+  highlight?: boolean;
+  children: ReactNode;
+}) {
   return (
     <button
       onClick={onClick}
-      className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+      className={`relative flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
         on
           ? "bg-cyan-400/15 text-cyan-300 shadow-[0_0_0_1px_rgba(34,211,238,0.4)]"
-          : "text-gray-400 hover:text-gray-200"
+          : highlight
+            ? "text-amber-200 pulse-ring"
+            : "text-gray-400 hover:text-gray-200"
       }`}
     >
       {children}
+      {/* 闪烁徽章：未点击过多轮时显示 */}
+      {highlight && !on && (
+        <span className="absolute -top-1.5 -end-1.5 flex h-4 w-4 items-center justify-center">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+          <span className="relative inline-flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[9px] font-bold text-slate-950">
+            ✨
+          </span>
+        </span>
+      )}
     </button>
   );
 }
@@ -315,5 +356,48 @@ function Tag({ children, tone = "cyan" }: { children: ReactNode; tone?: "cyan" |
     <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] ${cls}`}>
       {children}
     </span>
+  );
+}
+
+/**
+ * 多轮追问首次介绍卡。
+ * 覆盖在 ChatPanel 上方，首次切到多轮模式时展示，用 3 个亮点引导用户主动体验。
+ * 点「开始体验」后关闭（标记 chatIntroSeen），露出真实对话面板。
+ */
+function ChatIntroCard({ onStart }: { onStart: () => void }) {
+  const { t } = useI18n();
+  const highlights = [
+    { icon: "🎯", title: t("chat_feat1_title"), desc: t("chat_feat1_desc") },
+    { icon: "📊", title: t("chat_feat2_title"), desc: t("chat_feat2_desc") },
+    { icon: "🔁", title: t("chat_feat3_title"), desc: t("chat_feat3_desc") },
+  ];
+  return (
+    <div className="absolute inset-0 z-20 flex items-center justify-center rounded-[inherit] bg-slate-950/80 p-4 backdrop-blur-md">
+      <div className="animate-cockpit-pop w-full max-w-md space-y-4 rounded-2xl border border-amber-400/30 bg-gradient-to-br from-slate-900/95 to-violet-950/40 p-6 shadow-2xl">
+        <div className="text-center space-y-2">
+          <div className="text-3xl">✨</div>
+          <h3 className="text-xl font-bold text-white">{t("chat_intro_title")}</h3>
+          <p className="text-sm text-gray-300">{t("chat_intro_subtitle")}</p>
+        </div>
+        <div className="space-y-2.5">
+          {highlights.map((h, i) => (
+            <div key={i} className="flex items-start gap-3 rounded-lg bg-white/[0.06] p-3.5">
+              <span className="text-2xl leading-none">{h.icon}</span>
+              <div className="flex-1">
+                <div className="text-sm font-bold text-amber-200">{h.title}</div>
+                <div className="mt-0.5 text-sm leading-relaxed text-gray-200">{h.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={onStart}
+          className="shimmer-btn w-full rounded-xl py-3.5 text-base font-bold"
+        >
+          {t("chat_intro_start")} →
+        </button>
+        <p className="text-center text-xs text-gray-400">{t("chat_intro_hint")}</p>
+      </div>
+    </div>
   );
 }

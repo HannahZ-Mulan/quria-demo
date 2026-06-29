@@ -264,6 +264,17 @@
   animation: typing-bounce 1.2s infinite;
 }
 
+/* 多轮追问 Tab 引导：脉冲边框光环（吸引注意力到亮点功能） */
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.5); }
+  70%  { box-shadow: 0 0 0 6px rgba(251, 191, 36, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+}
+.pulse-ring {
+  animation: pulse-ring 1.8s infinite;
+  border: 1px solid rgba(251, 191, 36, 0.4) !important;
+}
+
 /* 访谈节奏面板：柱状图 + 仪表盘 */
 .rhythm-bar {
   width: 100%;
