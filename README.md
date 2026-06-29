@@ -18,7 +18,7 @@
 
 This is an **original work independently designed and built** by the author, including product docs (PRD/SRS), interactive prototype, rule engine, unit tests and i18n.
 
-📧 联系方式 / Contact：`在此填写你的邮箱`
+📧 联系方式 / Contact：`joker_zk@163.com`
 
 </div>
 
