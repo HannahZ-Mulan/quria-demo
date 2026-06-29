@@ -272,9 +272,9 @@ function Stepper({ step, labels }: { step: Step; labels: string[] }) {
         const on = i === currentIdx;
         return (
           <div key={i} className="flex flex-1 items-center">
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-1 sm:gap-1.5">
               <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-all duration-400 ${
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all duration-400 sm:h-8 sm:w-8 sm:text-sm ${
                   done
                     ? "bg-cyan-400/20 text-cyan-300 ring-1 ring-cyan-400/40"
                     : on
@@ -284,10 +284,10 @@ function Stepper({ step, labels }: { step: Step; labels: string[] }) {
               >
                 {done ? "✓" : i + 1}
               </div>
-              <span className={`text-[10px] ${on ? "text-gray-200" : "text-gray-500"}`}>{label}</span>
+              <span className={`text-[9px] text-center leading-tight sm:text-[10px] ${on ? "text-gray-200" : "text-gray-500"}`}>{label}</span>
             </div>
             {i < labels.length - 1 && (
-              <div className="mx-2 mb-5 h-0.5 flex-1 rounded-full bg-white/10">
+              <div className="mx-1 mb-5 h-0.5 flex-1 rounded-full bg-white/10 sm:mx-2">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${i < currentIdx ? "w-full bg-gradient-to-r from-violet-500 to-cyan-500" : "w-0"}`}
                 />
@@ -637,13 +637,13 @@ function RiskMatrix({ r }: { r: DecomposeResult }) {
         </div>
       ) : (
         <div className="flex gap-2">
-          {/* 左侧：影响轴标签 */}
-          <div className="flex flex-col justify-between py-1 text-[10px] text-gray-500">
+          {/* 左侧：影响轴标签（移动端隐藏，避免占用宝贵的横向空间） */}
+          <div className="hidden flex-col justify-between py-1 text-[10px] text-gray-500 sm:flex">
             <span className="rotate-180 [writing-mode:vertical-rl]">{t("risk_high")} ← → {t("risk_low")}</span>
           </div>
           {/* 矩阵主体 */}
           <div className="flex-1">
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
               {impactRows.map((row) =>
                 probCols.map((col) => {
                   const items = bucket(row.level, col.level);

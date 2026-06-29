@@ -129,6 +129,13 @@
   }
 }
 
+/* 全局兜底：防止任何固定宽度元素导致横向滚动（移动端友好） */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 /* ============================================================
    深空科技风全局底盘（首页方案 B + project1 控制台 + project3 对话流共用）
    ============================================================ */
@@ -207,6 +214,13 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #9aa0b4;
+}
+/* 移动端小标签略放大，保证可读 */
+@media (max-width: 640px) {
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
 }
 
 /* 流光按钮：hover 时一道光从左扫到右 */

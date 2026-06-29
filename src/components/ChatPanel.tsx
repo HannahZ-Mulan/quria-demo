@@ -160,8 +160,8 @@ export function ChatPanel() {
         <span className="ms-auto text-xs text-gray-500">{t("chat_send_hint")}</span>
       </div>
 
-      {/* 输入区 */}
-      <div className="flex gap-2">
+      {/* 输入区（移动端 Textarea 与按钮各占一行，避免按钮挤走输入空间） */}
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -173,7 +173,7 @@ export function ChatPanel() {
         <Button
           onClick={send}
           disabled={loading || !input.trim()}
-          className="shimmer-btn self-end border-0 bg-gradient-to-br from-violet-500 to-cyan-500 text-white hover:from-violet-500 hover:to-cyan-500"
+          className="shimmer-btn w-full shrink-0 border-0 bg-gradient-to-br from-violet-500 to-cyan-500 text-white hover:from-violet-500 hover:to-cyan-500 sm:w-auto sm:self-end"
         >
           {loading ? t("ai_loading") : t("send_message")}
         </Button>

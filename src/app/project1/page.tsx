@@ -167,8 +167,8 @@ export default function Project1Demo() {
                       </p>
                     </div>
 
-                    {/* 三联数字仪表 */}
-                    <div className="grid grid-cols-3 gap-3">
+                    {/* 三联数字仪表（移动端 gap 收紧，避免每格文字换行） */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
                       <StatTile value={String(result.wordCount)} label={t("final_length")} sub={t("char_unit")} tone="cyan" big />
                       <StatTile value={String(result.originalLength)} label={t("original_length")} sub={t("char_unit")} tone="violet" big />
                       <StatTile value={`${compression}%`} label={t("compression_rate")} sub="" tone="pink" big />
@@ -267,8 +267,8 @@ function StatTile({
         ? "text-violet-300"
         : "text-pink-300";
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-center transition-colors hover:bg-white/[0.07]">
-      <div className={`${big ? "text-2xl" : "text-base"} font-bold ${toneClass}`}>
+    <div className="rounded-xl border border-white/10 bg-white/[0.04] px-2 py-3 text-center transition-colors hover:bg-white/[0.07] sm:px-3">
+      <div className={`${big ? "text-xl sm:text-2xl" : "text-base"} font-bold ${toneClass} break-all`}>
         {value}
       </div>
       <div className="text-[10px] uppercase tracking-wide text-gray-500 mt-1">{label}</div>
@@ -372,8 +372,8 @@ function ChatIntroCard({ onStart }: { onStart: () => void }) {
     { icon: "🔁", title: t("chat_feat3_title"), desc: t("chat_feat3_desc") },
   ];
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center rounded-[inherit] bg-slate-950/80 p-4 backdrop-blur-md">
-      <div className="animate-cockpit-pop w-full max-w-md space-y-4 rounded-2xl border border-amber-400/30 bg-gradient-to-br from-slate-900/95 to-violet-950/40 p-6 shadow-2xl">
+    <div className="absolute inset-0 z-20 flex items-center justify-center overflow-y-auto rounded-[inherit] bg-slate-950/80 p-3 backdrop-blur-md sm:p-4">
+      <div className="animate-cockpit-pop w-full max-w-md space-y-4 rounded-2xl border border-amber-400/30 bg-gradient-to-br from-slate-900/95 to-violet-950/40 p-5 shadow-2xl sm:p-6">
         <div className="text-center space-y-2">
           <div className="text-3xl">✨</div>
           <h3 className="text-xl font-bold text-white">{t("chat_intro_title")}</h3>

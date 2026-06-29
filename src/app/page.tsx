@@ -28,7 +28,7 @@ export default function Home() {
           <span className="inline-block text-xs font-semibold tracking-[0.18em] uppercase text-cyan-300/90 bg-cyan-400/10 border border-cyan-400/20 rounded-full px-4 py-1.5">
             Quria · Product Optimization
           </span>
-          <h1 className="text-5xl font-bold tracking-tight text-white">
+          <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
             {t("home_title").split(" ").slice(0, -1).join(" ") || t("home_title")}{" "}
             <span className="text-gradient-aurora">
               {t("home_title").split(" ").slice(-1)}

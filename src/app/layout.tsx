@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { I18nProvider } from "@/i18n/index";  // 或者 @/i18n/index.tsx
@@ -21,6 +21,13 @@ const inter = localFont({
 export const metadata: Metadata = {
   title: "Quria Product Optimization",
   description: "AI Interview System Optimization Demo",
+};
+
+// 视口设置：Next.js 16 App Router 不会自动注入 viewport meta，
+// 必须显式导出，否则移动端会出现缩放/布局异常，构建时也会告警。
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 /**
