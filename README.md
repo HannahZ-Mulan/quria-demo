@@ -8,6 +8,18 @@
 
 [在线演示 / Live Demo](https://quria-demo.vercel.app) · [文档 / Docs](https://quria-demo.vercel.app/docs)
 
+---
+
+### 👤 作者 / Author
+
+**Hannah（独立完成 · 独家设计实现）**
+
+这是作者 **独立设计、独立开发** 的原创作品，涵盖产品方案（PRD/SRS）、交互原型、规则引擎、单测与多语言。
+
+This is an **original work independently designed and built** by the author, including product docs (PRD/SRS), interactive prototype, rule engine, unit tests and i18n.
+
+📧 联系方式 / Contact：`在此填写你的邮箱`
+
 </div>
 
 ---
