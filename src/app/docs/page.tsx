@@ -174,7 +174,7 @@ export default function DocsPage() {
         {/* 4 个模块 Tab 切换：磨砂胶囊容器，Tab 之间留间距，双行文案 + 项目配色高亮 */}
         <Tabs defaultValue="p1-prd" className="w-full">
           <div className="flex justify-center">
-            <TabsList className="flex w-full flex-wrap justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04]! p-2 backdrop-blur-sm sm:w-auto sm:flex-nowrap">
+            <TabsList className="flex h-auto w-full flex-wrap justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04]! p-2 backdrop-blur-sm sm:h-9 sm:w-auto sm:flex-nowrap">
               <TabsTrigger value="p1-prd" className={tabCyan}>
                 <span className="text-[10px] font-bold tracking-[0.16em] text-cyan-300/70 uppercase">PRD</span>
                 <span className="text-xs leading-tight">{t("project1_title")}</span>
